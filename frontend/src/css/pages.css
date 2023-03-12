@@ -1,0 +1,43 @@
+@charset "UTF-8";
+/* Page Styles for CEST Website */
+
+/* Landing */
+
+.landing-background {
+    background-color: #0054A8;
+    height: 40vh;
+    padding: 70px 70px;
+}
+
+.landing-hero-text {
+    padding: 0px 50px;
+    display: flex;
+    flex-direction: column;
+    column-gap: 30px;
+    align-items: flex-start;
+    align-content: flex-start;
+}
+
+.landing-title {
+    width: 350px;
+}
+
+.large-button {
+    background-color: #FFFFFF;
+    color: #0054A8;
+    border-radius: 35px;
+    font-family: urbane, sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    padding: 10px 20px;
+    margin: 20px 0 0 0;
+    width: fit-content;
+    cursor: pointer;
+}
+
+.large-button:hover {
+    background-color: #197adb;
+    color: #FFFFFF;
+}
