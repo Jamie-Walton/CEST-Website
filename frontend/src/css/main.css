@@ -1,0 +1,43 @@
+@charset "UTF-8";
+/* Main Styles for CEST Website */
+
+main {
+    padding: 0;
+    margin: 0;
+}
+
+header {
+    display: flex;
+    flex-direction: column;
+    align-content: center;
+    column-gap: 25px;
+    background-color: #0054A8;
+    padding: 50px 70px;
+}
+
+body {
+    padding: 0;
+    margin: 0;
+}
+
+h2 {
+    font-family: proxima-nova, sans-serif;
+    text-transform: uppercase;
+    font-weight: 500;
+    color: #FFFFFF;
+    letter-spacing: 6px;
+    font-size: 22px;
+    margin: 0;
+}
+
+p {
+    font-family: proxima-nova, sans-serif;
+    font-size: 14px;
+    margin: 0;
+}
+
+.header-subtitle {
+    color: #FFFFFF;
+    font-weight: 300;
+    letter-spacing: 0.5px;
+}

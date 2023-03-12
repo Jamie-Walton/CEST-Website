@@ -1,9 +1,16 @@
-import Analyze from './components/Analyze';
+import Landing from './pages/Landing';
+import './css/main.css';
 
 function App() {
   return (
-   <main>
-      {<Analyze/>}
+    <main>
+      <header>
+          <h2>Vandsburger Lab</h2>
+          <p className="header-subtitle">University of California, Berkeley</p>
+      </header>
+      <body>
+        {<Landing/>}
+      </body>
     </main>
   );
 }
