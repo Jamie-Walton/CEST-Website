@@ -11,3 +11,7 @@ To start the development website, you will need to have `django` and `npm` insta
 (3) Start the frontend app with `npm start`.
 
 If the formatting looks odd, run `npm build`, then restart `npm` again.
+
+
+## UI
+View the wireframe here: https://xd.adobe.com/view/438a18fc-4194-4f1c-b5ed-43e3fcda5069-16d9/
