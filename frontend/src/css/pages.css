@@ -5,7 +5,7 @@
 
 .landing-background {
     background-color: #0054A8;
-    height: 40vh;
+    height: 35vh;
     padding: 70px 70px;
 }
 
@@ -19,6 +19,12 @@
 }
 
 .landing-title {
+    width: 350px;
+}
+
+.landing-subtitle {
+    color: #FFFFFF;
+    margin: 10px 0 20px 0;
     width: 350px;
 }
 
@@ -40,4 +46,36 @@
 .large-button:hover {
     background-color: #197adb;
     color: #FFFFFF;
+}
+
+@media (max-width: 1000px) {
+    .landing-background {
+        height: 45vh;
+    }
+    .landing-main-image {
+        position: relative;
+        top: -70px;
+        left: 70px;
+        width: 575px;
+    }
+}
+
+@media (min-width: 1000px) and (max-width: 1150px) {
+    
+    .landing-main-image {
+        position: absolute;
+        top: 200px;
+        right: 100px;
+        width: 450px;
+    }
+}
+
+@media (min-width: 1150px) {
+    
+    .landing-main-image {
+        position: absolute;
+        top: 200px;
+        right: 100px;
+        width: 575px;
+    }
 }

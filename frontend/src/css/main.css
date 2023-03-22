@@ -22,7 +22,7 @@ body {
 
 h1 {
     font-family: urbane, sans-serif;
-    font-weight: 500;
+    font-weight: 300;
     color: #FFFFFF;
     font-size: 25px;
     margin: 0;
@@ -42,6 +42,8 @@ p {
     font-family: proxima-nova, sans-serif;
     font-size: 14px;
     margin: 0;
+    letter-spacing: 0;
+    line-height: normal;
 }
 
 .header-subtitle {
