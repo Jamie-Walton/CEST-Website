@@ -13,32 +13,29 @@ class Landing extends React.Component {
       }
     
     handleDirectoryUpload = event => {
-        this.setState({ directory: event.target.file });
+        this.setState({ directory: event.target.files });
     }
 
-    onFileUpload = () => {
+    onDirectoryUpload = () => {
         const formData = new FormData();
-        formData.append(
-            "file",
-            this.state.selectedFile,
-            this.state.selectedFile.name
-        );
-        this.props.uploadClasses(this.props.namespace, formData);
-        const upload = document.getElementById("file-upload");
-        const fileText = document.getElementById("class-file-upload");
-        upload.classList.toggle("hide");
-        fileText.reset();
+        for (let i = 0; i < this.state.directory.length; i++) {
+            formData.append("file", this.state.directory[i], this.state.directory[i].name);
+        }
+        console.log(formData);
+        // this.props.uploadFiles(formData);
+        // fileText.reset();
 
-        /*
-        <form>
-            <input
-                id='directory-upload'
-                type='file'
-                webkitdirectory='true'
-                onChange={this.handleDirectoryUpload}
-            />
-        </form>
-        */
+        const config = {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        }
+    
+        axios
+            .post(`/upload/`, formData, config)
+            .catch((err) => {
+                console.log(err);
+            });
 
     };
     
@@ -49,10 +46,18 @@ class Landing extends React.Component {
                     <div className="landing-hero-text">
                         <h1 className="landing-title">Analyze CEST MRI images in seconds.</h1>
                         <p className="landing-subtitle">The SomethingTool is a robust, standardized tool for automatically segmenting and analyzing CEST MRI myocardium scans.</p>
-                        <div className="large-button">Upload Images</div>
+                        <form>
+                            <input
+                                id='directory-upload'
+                                type='file'
+                                webkitdirectory='true'
+                                onChange={this.handleDirectoryUpload}
+                            />
+                        </form>
+                        <div className="large-button" onClick={this.onDirectoryUpload}>Upload</div>
                     </div>
                 </div>
-                <img className="landing-main-image" src={MainImage} />
+                <img className="landing-main-image" src={MainImage} alt="Segmentation of a CEST MRI scan"/>
             </div>
         );
     }
