@@ -41,24 +41,30 @@ class Landing extends React.Component {
     
     render() {
         return(
-            <div>
-                <div className="landing-background">
-                    <div className="landing-hero-text">
-                        <h1 className="landing-title">Analyze CEST MRI images in seconds.</h1>
-                        <p className="landing-subtitle">The SomethingTool is a robust, standardized tool for automatically segmenting and analyzing CEST MRI myocardium scans.</p>
-                        <form>
-                            <input
-                                id='directory-upload'
-                                type='file'
-                                webkitdirectory='true'
-                                onChange={this.handleDirectoryUpload}
-                            />
-                        </form>
-                        <div className="large-button" onClick={this.onDirectoryUpload}>Upload</div>
+            <main>
+                <header>
+                    <h2>Vandsburger Lab</h2>
+                    <p className="header-subtitle">University of California, Berkeley</p>
+                    <div>
+                        <div className="landing-background">
+                            <div className="landing-hero-text">
+                                <h1 className="landing-title">Analyze CEST MRI images in seconds.</h1>
+                                <p className="landing-subtitle">The SomethingTool is a robust, standardized tool for automatically segmenting and analyzing CEST MRI myocardium scans.</p>
+                                <form>
+                                    <input
+                                        id='directory-upload'
+                                        type='file'
+                                        webkitdirectory='true'
+                                        onChange={this.handleDirectoryUpload}
+                                    />
+                                </form>
+                                <div className="large-button" onClick={this.onDirectoryUpload}>Upload</div>
+                            </div>
+                        </div>
+                        <img className="landing-main-image" src={MainImage} alt="Segmentation of a CEST MRI scan"/>
                     </div>
-                </div>
-                <img className="landing-main-image" src={MainImage} alt="Segmentation of a CEST MRI scan"/>
-            </div>
+                </header>
+            </main>
         );
     }
 

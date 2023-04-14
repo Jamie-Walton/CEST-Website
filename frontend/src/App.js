@@ -1,19 +1,22 @@
 import Landing from './pages/Landing';
+import Analyze from './components/Analyze';
 import './css/main.css';
 import './css/pages.css';
 
-function App() {
-  return (
-    <main>
-      <header>
-          <h2>Vandsburger Lab</h2>
-          <p className="header-subtitle">University of California, Berkeley</p>
-      </header>
-      <body>
-        {<Landing/>}
-      </body>
-    </main>
-  );
+import React, { Component } from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
+
+class App extends Component {
+  render() {
+    return (
+      <Router>
+        <Routes>
+            <Route exact path='/' element={<Landing/>} />
+            <Route path='/analyze' element={<Analyze/>} />
+        </Routes>
+      </Router>
+    );
+  }
 }
 
 export default App;

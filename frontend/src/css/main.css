@@ -38,6 +38,15 @@ h2 {
     margin: 0;
 }
 
+h3 {
+    font-family: urbane, sans-serif;
+    font-weight: 400;
+    letter-spacing: 1px;
+    color: #0054A8;
+    font-size: 25px;
+    margin: 0 0 25px 0;
+}
+
 p {
     font-family: proxima-nova, sans-serif;
     font-size: 14px;
@@ -50,4 +59,15 @@ p {
     color: #FFFFFF;
     font-weight: 300;
     letter-spacing: 0.5px;
+}
+
+input {
+    color: #FFFFFF;
+    font-family: proxima-nova, sans-serif;
+    font-size: 14px;
+    font-style: italic;
+}
+
+.page-container {
+    margin: 100px 0 0 0;
 }
