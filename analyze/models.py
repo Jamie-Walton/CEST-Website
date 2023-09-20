@@ -3,6 +3,9 @@ from django.db import models
 def directory_path(instance, filename):
     return 'uploads/{0}/{1}'.format(instance.dataset.identifier, filename)
 
+def image_path(instance, filename):
+    return 'uploads/{0}/images/{1}'.format(instance.dataset.identifier, filename)
+
 class Dataset(models.Model):
 
     identifier = models.CharField(max_length=20)
@@ -17,3 +20,4 @@ class File(models.Model):
 
     dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE)
     file = models.FileField(upload_to=directory_path, blank=True, null=True)
+    scan = models.ImageField(upload_to=image_path, null=True, blank=True)

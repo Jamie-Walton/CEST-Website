@@ -1,30 +1,22 @@
 import React from "react";
 import ROICanvas from "../containers/ROICanvas";
+import { useSelector, useDispatch } from 'react-redux'
 
-class ROISelection extends React.Component {
+export function ROISelection() {
+  const data = useSelector((state) => state.analyze.data);
+  console.log(data[0]);
 
-    constructor(props) {
-      super(props);
-      this.state = {
-      }
+    return(
+      <main>
+          <header>
+              <h2>Vandsburger Lab</h2>
+              <p className="header-subtitle">University of California, Berkeley</p>
+          </header>
+          <div className="page-content">
+              <h3>Select ROI</h3>
+              <img src={'data:image/jpeg;base64,' + btoa('your-binary-data')}></img>
+              <ROICanvas />
+            </div>
+        </main>
+      );
     }
-  
-
-    render() {
-      return(
-        <main>
-            <header>
-                <h2>Vandsburger Lab</h2>
-                <p className="header-subtitle">University of California, Berkeley</p>
-            </header>
-            <div className="page-container">
-                <h3>Select ROI</h3>
-                <ROICanvas />
-              </div>
-          </main>
-        );
-      }
-
-}
-
-export default (ROISelection);

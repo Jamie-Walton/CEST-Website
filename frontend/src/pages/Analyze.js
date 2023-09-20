@@ -1,17 +1,16 @@
 import React from "react";
-import { FileUpload } from "../components/FileUpload.js"
-import ROICanvas from "../containers/ROICanvas";
+import Button from "../components/Button";
+import { FileUpload } from "../components/FileUpload.js";
+import { useNavigate } from "react-router-dom";
 
-class Analyze extends React.Component {
+export function Analyze() {
 
-    constructor(props) {
-      super(props);
-      this.state = {
-          directory: '',
-      }
-    }
+  const navigate = useNavigate();
+
+  const handlePageChange = (page) => {
+    navigate(`/${page}`);
+  };
   
-    render() {
       return(
         <main>
             <header>
@@ -29,12 +28,9 @@ class Analyze extends React.Component {
                   <div className="small-button analyze-button">Select Directory</div>
                     <FileUpload/>
                   </div>
+                  <Button name="Annotate" onClick={() => handlePageChange('roi')} />
                 </div>
               </div>
           </main>
         );
       }
-
-}
-
-export default (Analyze);

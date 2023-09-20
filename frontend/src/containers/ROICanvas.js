@@ -4,6 +4,7 @@ import { Stage, Layer, Image } from "react-konva";
 import Button from "../components/Button";
 import img from "../assets/scan_grid.png";
 
+
 const wrapperStyle = {
   display: "flex",
   justifyContent: "center",
@@ -18,7 +19,9 @@ const columnStyle = {
   marginTop: 20,
   backgroundColor: "aliceblue",
 };
-const ROICanvas = (img) => {
+
+const ROICanvas = (ind) => {
+
   const [image, setImage] = useState();
   const imageRef = useRef(null);
   const dataRef = useRef(null);

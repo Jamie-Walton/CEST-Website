@@ -9,6 +9,7 @@ export function FileUpload() {
     // const data = useSelector((state) => state.analyze.data)
     const dispatch = useDispatch()
     var directory = '';
+    var data = useSelector((state) => state.analyze.data);
   
     const handleDirectoryUpload = event => {
       directory = event.target.files;
@@ -29,7 +30,6 @@ export function FileUpload() {
         axios
             .post(`/upload/`, formData, config)
             .then((res) => {
-                console.log(res.data);
                 dispatch(filesUploaded(res.data));
             })
             .catch((err) => {
