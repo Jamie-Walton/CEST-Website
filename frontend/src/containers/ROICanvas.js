@@ -2,6 +2,7 @@ import React, { useMemo, useRef, useState, useEffect } from "react";
 import { useSelector, useDispatch } from 'react-redux';
 import PolygonAnnotation from "../components/PolygonAnnotation";
 import { Stage, Layer, Image } from "react-konva";
+import Konva from 'konva';
 import Button from "../components/Button";
 
 
@@ -149,9 +150,14 @@ export function ROICanvas() {
     setROIs(newROIs);
     setPolyComplete(false);
   };
-  const done = () => {
-    console.log('done');
+  const copyPrev = () => {
+    if (imageNum > 0) {
+      const roi = rois[imageNum - 1]
+      setPoints(roi.points);
+      setPolyComplete(roi.isPolyComplete);
+    }
   }
+
   const handleGroupDragEnd = (e) => {
     //drag end listens other children circles' drag end event
     //...that's, why 'name' attr is added, see in polygon annotation part
@@ -165,6 +171,10 @@ export function ROICanvas() {
       setPoints(result);
     }
   };
+
+  //imageRef.cache();
+  //imageRef.filters([Konva.Filters.Brighten]);
+  //imageRef.brightness(0.5);
 
   return (
     <div>
@@ -184,6 +194,8 @@ export function ROICanvas() {
               y={0}
               width={size.width}
               height={size.height}
+              filters={[Konva.Filters.Brighten]}
+              brightness={0.1}
             />
             <PolygonAnnotation
               points={points}
@@ -206,8 +218,8 @@ export function ROICanvas() {
           }}
         >
           <Button name="Undo" onClick={undo} style={{margin: "20 5 20 20"}}/>
+          <Button name="Copy Previous" onClick={copyPrev} style={{margin: "20 5"}}/>
           <Button name="Reset" onClick={reset} style={{margin: "20 5"}}/>
-          <Button name="Done" onClick={done} style={{margin: "20 5"}}/>
         </div>
       </div>
       </div>

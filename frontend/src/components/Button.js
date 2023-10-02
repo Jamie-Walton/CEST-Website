@@ -1,9 +1,9 @@
 import React from "react";
 
-const Button = ({ name, onClick, style }) => {
+const Button = ({ name, onClick, style, className }) => {
   return (
     <div
-      className="button"
+      className={`button ${className}`}
       style={style}
       onClick={onClick}
     >

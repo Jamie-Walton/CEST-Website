@@ -109,6 +109,16 @@ input {
   margin: 20px 5px;
 }
 
+.major-button {
+  margin-top: 80px !important;
+  letter-spacing: 2px;
+  background-color: #0054A8 !important;
+}
+
+.major-button:hover {
+  background-color: #197adb !important;
+}
+
 .large-button {
   background-color: #FFFFFF;
   color: #0054A8;

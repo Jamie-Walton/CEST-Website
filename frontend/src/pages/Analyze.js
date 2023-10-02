@@ -57,6 +57,7 @@ export function Analyze() {
                 <h4>Mark ROIs</h4>
                 <p>Use the annotation tool to select the region of interest for each image in your dataset.</p>
                 <ROICanvas/>
+                <Button className="major-button" name="Generate Report"/>
               </div> :
               <div/>
               }
