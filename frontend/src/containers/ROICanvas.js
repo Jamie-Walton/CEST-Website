@@ -1,8 +1,8 @@
 import React, { useMemo, useRef, useState, useEffect } from "react";
+import { useSelector, useDispatch } from 'react-redux';
 import PolygonAnnotation from "../components/PolygonAnnotation";
 import { Stage, Layer, Image } from "react-konva";
 import Button from "../components/Button";
-import img from "../assets/scan_grid.png";
 
 
 const wrapperStyle = {
@@ -20,8 +20,11 @@ const columnStyle = {
   backgroundColor: "aliceblue",
 };
 
-const ROICanvas = (ind) => {
+export function ROICanvas() {
 
+  const data = useSelector((state) => state.analyze.data);
+  const [imageNum, setImageNum] = useState(0);
+  const [rois, setROIs] = useState(Array(37).fill({points: [], isPolyComplete: false}));
   const [image, setImage] = useState();
   const imageRef = useRef(null);
   const dataRef = useRef(null);
@@ -31,14 +34,29 @@ const ROICanvas = (ind) => {
   const [position, setPosition] = useState([0, 0]);
   const [isMouseOverPoint, setMouseOverPoint] = useState(false);
   const [isPolyComplete, setPolyComplete] = useState(false);
+  var img;
+  data.length > 0 ? img = `/media/uploads/${data[imageNum].id}/images/${data[imageNum].image}.png` : img = null
   const videoElement = useMemo(() => {
     const element = new window.Image();
     element.width = 650;
-    element.height = 302;
+    element.height = 400;
     element.src = img;
     return element;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [img]); //it may come from redux so it may be dependency that's why I left it as dependecny...
+
+  const prevImage = () => {
+    if (imageNum > 0) {
+      setImageNum(imageNum - 1);
+    }
+  };
+
+  const nextImage = () => {
+    if (imageNum < data.length - 1) {
+      setImageNum(imageNum + 1);
+    }
+  };
+
   useEffect(() => {
     const onload = function () {
       setSize({
@@ -98,7 +116,27 @@ const ROICanvas = (ind) => {
         .concat(isPolyComplete ? [] : position)
         .reduce((a, b) => a.concat(b), [])
     );
+    var newROIs = rois;
+    newROIs[imageNum] = {points: points, isPolyComplete: isPolyComplete};
+    setROIs(
+      newROIs
+    );
   }, [points, isPolyComplete, position]);
+
+  useEffect(() => {
+    setPoints(
+      rois[imageNum].points
+    );
+    setPolyComplete(
+      rois[imageNum].isPolyComplete
+    );
+    setFlattenedPoints(
+      points
+        .concat(isPolyComplete ? [] : position)
+        .reduce((a, b) => a.concat(b), [])
+    );
+  }, [imageNum]);
+
   const undo = () => {
     setPoints(points.slice(0, -1));
     setPolyComplete(false);
@@ -106,6 +144,9 @@ const ROICanvas = (ind) => {
   };
   const reset = () => {
     setPoints([]);
+    var newROIs = rois;
+    newROIs[imageNum] = [];
+    setROIs(newROIs);
     setPolyComplete(false);
   };
   const done = () => {
@@ -126,11 +167,12 @@ const ROICanvas = (ind) => {
   };
 
   return (
+    <div>
     <div style={wrapperStyle}>
       <div style={columnStyle}>
         <Stage
           width={size.width || 650}
-          height={size.height || 302}
+          height={size.height || 400}
           onMouseMove={handleMouseMove}
           onMouseDown={handleMouseDown}
         >
@@ -159,15 +201,26 @@ const ROICanvas = (ind) => {
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
+            padding: "20px",
+            gap: "10px"
           }}
         >
-          <Button name="Undo" onClick={undo} style={{marginRight: "20"}}/>
-          <Button name="Reset" onClick={reset} />
-          <Button name="Done" onClick={done} />
+          <Button name="Undo" onClick={undo} style={{margin: "20 5 20 20"}}/>
+          <Button name="Reset" onClick={reset} style={{margin: "20 5"}}/>
+          <Button name="Done" onClick={done} style={{margin: "20 5"}}/>
         </div>
+      </div>
+      </div>
+      <div 
+        style={{
+          display: "flex", 
+          justifyContent: "space-between", 
+          alignItems: "center",
+          marginTop: "20px"}}>
+        <Button name="Previous" onClick={() => prevImage()}/>
+        <p>{`${imageNum + 1} / ${data.length}`}</p>
+        <Button name="Next" onClick={() => nextImage()}/>
       </div>
     </div>
   );
 };
-
-export default ROICanvas;

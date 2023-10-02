@@ -1,9 +1,10 @@
 import React from "react";
 
-const Button = ({ name, onClick }) => {
+const Button = ({ name, onClick, style }) => {
   return (
     <div
-      className="roi-button"
+      className="button"
+      style={style}
       onClick={onClick}
     >
       {name}

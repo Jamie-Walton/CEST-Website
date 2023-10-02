@@ -1,10 +1,7 @@
 import React from "react";
-import ROICanvas from "../containers/ROICanvas";
-import { useSelector, useDispatch } from 'react-redux'
+import { ROICanvas } from "../containers/ROICanvas";
 
 export function ROISelection() {
-  const data = useSelector((state) => state.analyze.data);
-  console.log(data[0]);
 
     return(
       <main>
@@ -14,8 +11,7 @@ export function ROISelection() {
           </header>
           <div className="page-content">
               <h3>Select ROI</h3>
-              <img src={'data:image/jpeg;base64,' + btoa('your-binary-data')}></img>
-              <ROICanvas />
+              <ROICanvas/>
             </div>
         </main>
       );

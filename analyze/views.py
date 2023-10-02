@@ -1,3 +1,4 @@
+from marshal import load
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
@@ -20,8 +21,6 @@ class UploadView(APIView):
 
     def load_image(self, file, identifier):
         ds = dcmread(os.path.join(MEDIA_ROOT, f'uploads/{identifier}/{file}'))
-        img = get_PIL_image(ds)
-        img.save(os.path.join(MEDIA_ROOT, f'uploads/{identifier}/images/{file}.png'))
         return get_PIL_image(ds)
 
     def post(self, request):
@@ -30,17 +29,15 @@ class UploadView(APIView):
         dataset = Dataset(identifier=identifier)
         dataset.save()
 
-        files = []
+        images = []
+        os.mkdir(f'{MEDIA_ROOT}/uploads/{identifier}')
+        os.mkdir(f'{MEDIA_ROOT}/uploads/{identifier}/images')
         for f in directory:
             if '.dcm' in f.name:
-                files.append(f.name)
-                file = File(dataset=dataset, file=f, scan=f'{f.name[:-4]}.png')
+                images += [{'id': identifier, 'image': f.name[:-4]}]
+                file = File(dataset=dataset, file=f)
                 file.save()
+                img = self.load_image(f.name, identifier)
+                img.save(f'{MEDIA_ROOT}/uploads/{identifier}/images/{f.name[:-4]}.png')
         
-        file_objects = File.objects.filter(dataset=dataset)
-        serializer = FileSerializer(file_objects, many=True)
-
-        # os.rmdir(os.path.join(MEDIA_ROOT, f'uploads/{identifier}/{file}'))
-        
-        return Response(serializer.data)
-
+        return JsonResponse({'images': images})

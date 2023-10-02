@@ -18,7 +18,7 @@ const PolygonAnnotation = (props) => {
     handleMouseOverStartPoint,
     handleMouseOutStartPoint,
   } = props;
-  const vertexRadius = 6;
+  const vertexRadius = 4;
 
   const [stage, setStage] = useState();
   const handleGroupMouseOver = (e) => {

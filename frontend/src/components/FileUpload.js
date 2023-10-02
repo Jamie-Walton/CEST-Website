@@ -2,14 +2,13 @@ import React from "react";
 import { useSelector, useDispatch } from 'react-redux'
 import { filesUploaded } from '../reducers/analyze'
 import axios from "axios";
+import Button from "../components/Button";
 
 
 export function FileUpload() {
 
-    // const data = useSelector((state) => state.analyze.data)
     const dispatch = useDispatch()
     var directory = '';
-    var data = useSelector((state) => state.analyze.data);
   
     const handleDirectoryUpload = event => {
       directory = event.target.files;
@@ -39,7 +38,7 @@ export function FileUpload() {
     };
   
       return(
-        <div className="analyze-container">
+        <div style={{display: 'flex', alignItems: "center"}}>
             <form>
                 <input
                     id='directory-upload'
@@ -48,7 +47,7 @@ export function FileUpload() {
                     onChange={handleDirectoryUpload}
                 />
             </form>
-            <div className="large-button" onClick={onDirectoryUpload}>Upload</div>
+            <Button name="Upload" onClick={onDirectoryUpload} />
         </div>
         );
 }

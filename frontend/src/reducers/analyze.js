@@ -7,8 +7,7 @@ const analyzeSlice = createSlice({
   },
   reducers: {
     filesUploaded: (state, data) => {
-      state.data = data.payload;
-      console.log(data.payload);
+      state.data = data.payload.images;
     },
   }
 })

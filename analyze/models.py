@@ -20,4 +20,3 @@ class File(models.Model):
 
     dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE)
     file = models.FileField(upload_to=directory_path, blank=True, null=True)
-    scan = models.ImageField(upload_to=image_path, null=True, blank=True)
