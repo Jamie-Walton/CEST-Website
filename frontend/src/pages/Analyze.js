@@ -5,7 +5,7 @@ import Button from "../components/Button";
 import Toggle from "../components/Toggle";
 import { FileUpload, generateReport } from "../components/FileUpload.js";
 import { useNavigate } from "react-router-dom";
- import { ROICanvas } from "../containers/ROICanvas";
+import { ROICanvas } from "../containers/ROICanvas";
 
 export function Analyze() {
 
@@ -69,7 +69,12 @@ export function Analyze() {
                 <div className="analyze-subsection">
                   <div>
                     <h4>Select Analysis Mode</h4>
-                    <p>Explain pixel-wise detection</p>
+                    <p>
+                      By default, SomethingTool uses segment-wise analysis, averaging pixel 
+                      intensity across a full region of interest. Optionally, you may switch to 
+                      pixel-wise detection to generate z-spectra for each voxel. Note that this 
+                      may result in a longer processing time.
+                    </p>
                   </div>
                   <div className="analyze-side-container">
                     <Toggle action={toggleAnalysisMode}/>
