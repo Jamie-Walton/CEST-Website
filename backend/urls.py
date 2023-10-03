@@ -21,7 +21,8 @@ from backend import settings
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('upload/', views.UploadView.as_view())
+    path('upload/', views.UploadView.as_view()),
+    path('report/', views.report)
 ]
 
 if settings.DEBUG:

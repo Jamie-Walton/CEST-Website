@@ -1,24 +1,50 @@
-import React from "react";
+import React, { useState } from "react";
 import { useSelector, useDispatch } from 'react-redux';
+import axios from "axios";
 import Button from "../components/Button";
 import Toggle from "../components/Toggle";
-import { FileUpload } from "../components/FileUpload.js";
+import { FileUpload, generateReport } from "../components/FileUpload.js";
 import { useNavigate } from "react-router-dom";
  import { ROICanvas } from "../containers/ROICanvas";
 
 export function Analyze() {
 
+  const dispatch = useDispatch()
   const navigate = useNavigate();
   const data = useSelector((state) => state.analyze.data);
+
+  const [rois, setROIs] = useState(Array(37).fill({points: [], isPolyComplete: false}));
+  const [pixelWise, setPixelWise] = useState(false);
 
   const handlePageChange = (page) => {
     navigate(`/${page}`);
   };
 
-  var pixelWise = false
-  const toggleAnalysisMode = (status) => {
-    pixelWise = status;
+  const saveROIs = (rois) => {
+    setROIs(rois);
   };
+
+  const toggleAnalysisMode = (status) => {
+    setPixelWise(status);
+  };
+
+  const generateReport = () => {
+    const config = {
+      headers: {
+          'Content-Type': 'application/json'
+        }
+    }
+    var id = data[0].id;
+    const report = JSON.stringify({ id, rois, pixelWise });
+    axios
+        .post(`/report/`, report, config)
+        .then((res) => {
+            // dispatch(generateReport(res.data));
+        })
+        .catch((err) => {
+            console.log(err);
+        });
+  }
   
       return(
         <main>
@@ -56,8 +82,8 @@ export function Analyze() {
               <div style={{marginLeft: "24vw", width: "60vw"}}>
                 <h4>Mark ROIs</h4>
                 <p>Use the annotation tool to select the region of interest for each image in your dataset.</p>
-                <ROICanvas/>
-                <Button className="major-button" name="Generate Report"/>
+                <ROICanvas save={saveROIs} isPixelWise={pixelWise}/>
+                <Button className="major-button" name="Generate Report" onClick={generateReport}/>
               </div> :
               <div/>
               }

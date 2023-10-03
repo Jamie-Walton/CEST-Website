@@ -9,8 +9,11 @@ const analyzeSlice = createSlice({
     filesUploaded: (state, data) => {
       state.data = data.payload.images;
     },
+    generateReport: (state, data) => {
+      state.report = data.payload.report;
+    },
   }
 })
 
-export const { filesUploaded } = analyzeSlice.actions
+export const { filesUploaded, generateReport } = analyzeSlice.actions
 export default analyzeSlice.reducer

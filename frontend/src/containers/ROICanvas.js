@@ -21,11 +21,12 @@ const columnStyle = {
   backgroundColor: "aliceblue",
 };
 
-export function ROICanvas() {
+export function ROICanvas({ save, isPixelWise }) {
 
   const data = useSelector((state) => state.analyze.data);
   const [imageNum, setImageNum] = useState(0);
-  const [rois, setROIs] = useState(Array(37).fill({points: [], isPolyComplete: false}));
+  const [rois, setROIs] = useState(Array(37).fill({points: [], isPolyComplete: false})); // TODO: Fix static!
+  const [roiEmpty, setROIEmpty] = useState(true);
   const [image, setImage] = useState();
   const imageRef = useRef(null);
   const dataRef = useRef(null);
@@ -118,10 +119,17 @@ export function ROICanvas() {
         .reduce((a, b) => a.concat(b), [])
     );
     var newROIs = rois;
-    newROIs[imageNum] = {points: points, isPolyComplete: isPolyComplete};
+    console.log(isPixelWise, roiEmpty, isPolyComplete);
+    if (isPixelWise && roiEmpty && isPolyComplete) {
+      newROIs.fill({points: points, isPolyComplete: true});
+      setROIEmpty(false);
+    } else {
+      newROIs[imageNum] = {points: points, isPolyComplete: isPolyComplete};
+    }
     setROIs(
       newROIs
     );
+    save(newROIs);
   }, [points, isPolyComplete, position]);
 
   useEffect(() => {
@@ -138,6 +146,17 @@ export function ROICanvas() {
     );
   }, [imageNum]);
 
+  useEffect(() => {
+    var newROIs = rois;
+    if (isPixelWise) {
+      setPoints([]);
+      newROIs.fill({points: [], isPolyComplete: false});
+      setROIs(newROIs);
+      setROIEmpty(true);
+      setPolyComplete(false);
+    }
+  }, [isPixelWise]);
+
   const undo = () => {
     setPoints(points.slice(0, -1));
     setPolyComplete(false);
@@ -146,8 +165,13 @@ export function ROICanvas() {
   const reset = () => {
     setPoints([]);
     var newROIs = rois;
-    newROIs[imageNum] = [];
+    if (isPixelWise) {
+      newROIs.fill({points: [], isPolyComplete: false});
+    } else {
+      newROIs[imageNum] = [];
+    }
     setROIs(newROIs);
+    setROIEmpty(true);
     setPolyComplete(false);
   };
   const copyPrev = () => {
@@ -218,7 +242,7 @@ export function ROICanvas() {
           }}
         >
           <Button name="Undo" onClick={undo} style={{margin: "20 5 20 20"}}/>
-          <Button name="Copy Previous" onClick={copyPrev} style={{margin: "20 5"}}/>
+          {isPixelWise ? <div/> : <Button name="Copy Previous" onClick={copyPrev} style={{margin: "20 5"}}/>}
           <Button name="Reset" onClick={reset} style={{margin: "20 5"}}/>
         </div>
       </div>

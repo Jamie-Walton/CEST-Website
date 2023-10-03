@@ -1,6 +1,8 @@
 from marshal import load
+import re
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.http.response import JsonResponse
 from rest_framework import status
@@ -41,3 +43,21 @@ class UploadView(APIView):
                 img.save(f'{MEDIA_ROOT}/uploads/{identifier}/images/{f.name[:-4]}.png')
         
         return JsonResponse({'images': images})
+
+
+@api_view(('POST',))
+def report(request):
+
+    def pointsToMask(points):
+        # TODO: Add in function
+        print(points)
+    
+    if request.method == 'POST':
+        identifier = request.data["id"]
+        rois = request.data["rois"]
+        points = [roi["points"] for roi in rois]
+        pixel_wise = request.data["pixelWise"]
+        
+        masks = pointsToMask(points)
+
+        return JsonResponse({})
