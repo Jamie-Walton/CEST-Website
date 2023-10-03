@@ -119,8 +119,7 @@ export function ROICanvas({ save, isPixelWise }) {
         .reduce((a, b) => a.concat(b), [])
     );
     var newROIs = rois;
-    console.log(isPixelWise, roiEmpty, isPolyComplete);
-    if (isPixelWise && roiEmpty && isPolyComplete) {
+    if (!isPixelWise && roiEmpty && isPolyComplete) {
       newROIs.fill({points: points, isPolyComplete: true});
       setROIEmpty(false);
     } else {
@@ -148,7 +147,7 @@ export function ROICanvas({ save, isPixelWise }) {
 
   useEffect(() => {
     var newROIs = rois;
-    if (isPixelWise) {
+    if (!isPixelWise) {
       setPoints([]);
       newROIs.fill({points: [], isPolyComplete: false});
       setROIs(newROIs);
@@ -165,7 +164,7 @@ export function ROICanvas({ save, isPixelWise }) {
   const reset = () => {
     setPoints([]);
     var newROIs = rois;
-    if (isPixelWise) {
+    if (!isPixelWise) {
       newROIs.fill({points: [], isPolyComplete: false});
     } else {
       newROIs[imageNum] = [];
@@ -242,7 +241,7 @@ export function ROICanvas({ save, isPixelWise }) {
           }}
         >
           <Button name="Undo" onClick={undo} style={{margin: "20 5 20 20"}}/>
-          {isPixelWise ? <div/> : <Button name="Copy Previous" onClick={copyPrev} style={{margin: "20 5"}}/>}
+          {isPixelWise ? <Button name="Copy Previous" onClick={copyPrev} style={{margin: "20 5"}}/> : <div/>}
           <Button name="Reset" onClick={reset} style={{margin: "20 5"}}/>
         </div>
       </div>
