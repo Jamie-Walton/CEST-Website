@@ -6,11 +6,10 @@
 .landing-background {
     background-color: #0054A8;
     height: 35vh;
-    padding: 70px 70px;
+    padding: 70px 30px;
 }
 
 .landing-hero-text {
-    padding: 0px 50px;
     display: flex;
     flex-direction: column;
     column-gap: 30px;
@@ -26,26 +25,6 @@
     color: #FFFFFF;
     margin: 10px 0 20px 0;
     width: 350px;
-}
-
-.large-button {
-    background-color: #FFFFFF;
-    color: #0054A8;
-    border-radius: 35px;
-    font-family: urbane, sans-serif;
-    font-size: 14px;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    padding: 10px 20px;
-    margin: 20px 0 0 0;
-    width: fit-content;
-    cursor: pointer;
-}
-
-.large-button:hover {
-    background-color: #197adb;
-    color: #FFFFFF;
 }
 
 @media (max-width: 1000px) {
@@ -78,4 +57,53 @@
         right: 100px;
         width: 575px;
     }
+}
+
+
+/* Analyze */
+
+.analyze-page {
+    display: flex;
+    flex-direction: row;
+}
+
+.analyze-container {
+    display: flex;
+    flex-direction: column;
+    margin: 0 0 0 50px;
+    width: 60vw;
+}
+
+.side-image {
+    background-image: url("../assets/scan_grid.png");
+    background-size: cover;
+    background-repeat: no-repeat;
+    height: 50vh;
+    width: 20vw;
+}
+
+.analyze-subsection {
+    display: flex;
+    flex-direction: row;
+    margin: 0 0 40px 0;
+    width: 40vw;
+}
+
+.analyze-side-container {
+    position: absolute;
+    right: 20px;
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    align-items: center;
+    width: 30vw;
+    margin: 35px 0 0 0;
+}
+
+.analyze-button {
+    margin: 0 0 0 auto;
+}
+
+form {
+    width: 110px;
 }

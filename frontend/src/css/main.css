@@ -2,7 +2,7 @@
 /* Main Styles for CEST Website */
 
 main {
-    padding: 0;
+    padding: 0 0 20vh 0;
     margin: 0;
 }
 
@@ -38,6 +38,23 @@ h2 {
     margin: 0;
 }
 
+h3 {
+    font-family: urbane, sans-serif;
+    font-weight: 400;
+    letter-spacing: 1px;
+    color: #0054A8;
+    font-size: 25px;
+    margin: 0 0 25px 0;
+}
+
+h4 {
+    font-family: urbane, sans-serif;
+    font-weight: 400;
+    color: #0054A8;
+    font-size: 18px;
+    margin: 0 0 10px 0;
+}
+
 p {
     font-family: proxima-nova, sans-serif;
     font-size: 14px;
@@ -51,3 +68,127 @@ p {
     font-weight: 300;
     letter-spacing: 0.5px;
 }
+
+input {
+    color: #FFFFFF;
+    font-family: proxima-nova, sans-serif;
+    font-size: 14px;
+    font-style: italic;
+}
+
+.page-container {
+    margin: 100px 0 0 0;
+}
+
+.page-content {
+    margin: 100px 80px;
+}
+
+
+/* Buttons and Toggle Switches */
+
+.button {
+  background-color: #9CAABA;
+  color: #FFFFFF;
+  border-radius: 35px;
+  font-family: urbane, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  padding: 9px 18px;
+  width: fit-content;
+  cursor: pointer;
+}
+
+.button:hover {
+  background-color: #0054A8;
+}
+
+.roi-button {
+  margin: 20px 5px;
+}
+
+.major-button {
+  margin-top: 80px !important;
+  letter-spacing: 2px;
+  background-color: #0054A8 !important;
+}
+
+.major-button:hover {
+  background-color: #197adb !important;
+}
+
+.large-button {
+  background-color: #FFFFFF;
+  color: #0054A8;
+  border-radius: 35px;
+  font-family: urbane, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  padding: 10px 20px;
+  margin: 20px 0 0 0;
+  width: fit-content;
+  cursor: pointer;
+}
+
+.large-button:hover {
+  background-color: #197adb;
+  color: #FFFFFF;
+}
+
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 52px;
+    height: 26px;
+  }
+  
+  .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #9CAABA;
+    border-radius: 20px;
+    -webkit-transition: .4s;
+    transition: .4s;
+  }
+  
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    border-radius: 50%;
+    -webkit-transition: .4s;
+    transition: .4s;
+  }
+  
+  input:checked + .slider {
+    background-color: #0054A8;
+  }
+  
+  input:focus + .slider {
+    box-shadow: 0 0 1px #0054A8;
+  }
+  
+  input:checked + .slider:before {
+    -webkit-transform: translateX(26px);
+    -ms-transform: translateX(26px);
+    transform: translateX(26px);
+  }
