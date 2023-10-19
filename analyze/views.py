@@ -49,15 +49,52 @@ class UploadView(APIView):
 def report(request):
 
     def pointsToMask(points):
-        # TODO: Add in function
-        print(points)
+        '''
+        Example points data structure:
+        [
+            [
+                [207.40625, 229.203125], 
+                [272.40625, 165.203125], 
+                [345.40625, 238.203125], 
+                [276.40625, 302.203125], 
+                [198.40625, 283.203125]
+            ],
+            [
+                [207.40625, 229.203125], 
+                [272.40625, 165.203125], 
+                [345.40625, 238.203125], 
+                [276.40625, 302.203125], 
+                [198.40625, 283.203125]
+            ],
+            [
+                [207.40625, 229.203125], 
+                [272.40625, 165.203125], 
+                [345.40625, 238.203125], 
+                [276.40625, 302.203125], 
+                [198.40625, 283.203125]
+            ]
+        ]
+        '''
+        #TODO: Fill in function
     
     if request.method == 'POST':
         identifier = request.data["id"]
-        rois = request.data["rois"]
-        points = [roi["points"] for roi in rois]
+
+        epi_rois = request.data["epiROIs"]
+        epi_points = [roi["points"] for roi in epi_rois]
+
+        endo_rois = request.data["endoROIs"]
+        endo_points = [roi["points"] for roi in endo_rois]
+
+        insertion_rois = request.data["insertions"]
+        insertion_points = [roi["points"] for roi in insertion_rois]
+
         pixel_wise = request.data["pixelWise"]
         
-        masks = pointsToMask(points)
+        masks = {
+            "epi": pointsToMask(epi_points), 
+            "endo": pointsToMask(endo_points), 
+            "insertions": pointsToMask(insertion_points)
+        }
 
         return JsonResponse({})
