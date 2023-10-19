@@ -1,31 +1,34 @@
 import React, { useMemo, useRef, useState, useEffect } from "react";
 import { useSelector, useDispatch } from 'react-redux';
-import PolygonAnnotation from "../components/PolygonAnnotation";
+import PolygonAnnotation from "./PolygonAnnotation";
+import StaticPolygon from "./StaticPolygon";
 import { Stage, Layer, Image } from "react-konva";
 import Konva from 'konva';
-import Button from "../components/Button";
+import Button from "./Button";
+import LabelButton from "./LabelButton";
 
 
 const wrapperStyle = {
   display: "flex",
-  justifyContent: "center",
   marginTop: 20,
-  backgroundColor: "aliceblue",
+  backgroundColor: "white",
 };
 const columnStyle = {
   display: "flex",
-  justifyContent: "center",
   flexDirection: "column",
-  alignItems: "center",
   marginTop: 20,
-  backgroundColor: "aliceblue",
+  backgroundColor: "white",
 };
 
 export function ROICanvas({ save, isPixelWise }) {
 
   const data = useSelector((state) => state.analyze.data);
   const [imageNum, setImageNum] = useState(0);
-  const [rois, setROIs] = useState(Array(37).fill({points: [], isPolyComplete: false})); // TODO: Fix static!
+  const [roiMode, setROIMode] = useState("Epicardium");
+  const [epiROIs, setEpiROIs] = useState(JSON.parse(JSON.stringify(Array.from({length: 37}, e => ({points: [], flattenedPoints: [], isPolyComplete: false}))))); // TODO: Fix static!
+  const [endoROIs, setEndoROIs] = useState(JSON.parse(JSON.stringify(Array.from({length: 37}, e => ({points: [], flattenedPoints: [], isPolyComplete: false})))));
+  const [insertions, setInsertions] = useState(JSON.parse(JSON.stringify(Array.from({length: 37}, e => ({points: [], flattenedPoints: [], isPolyComplete: false})))));
+  const [selectedROIs, setSelectedROIs] = useState(JSON.parse(JSON.stringify(Array.from({length: 37}, e => ({points: [], flattenedPoints: [], isPolyComplete: false})))));
   const [roiEmpty, setROIEmpty] = useState(true);
   const [image, setImage] = useState();
   const imageRef = useRef(null);
@@ -83,6 +86,8 @@ export function ROICanvas({ save, isPixelWise }) {
     const mousePos = getMousePos(stage);
     if (isMouseOverPoint && points.length >= 3) {
       setPolyComplete(true);
+    } else if (roiMode === 'Insertion') {
+      setPoints([points, mousePos]);
     } else {
       setPoints([...points, mousePos]);
     }
@@ -112,31 +117,51 @@ export function ROICanvas({ save, isPixelWise }) {
     setPoints([...points.slice(0, index), pos, ...points.slice(index + 1)]);
   };
 
+  const setROIs = (rois) => {
+    switch(roiMode) {
+      case ('Epicardium'):
+        setEpiROIs([...rois]);
+        break;
+      case ('Endocardium'):
+        setEndoROIs([...rois]);
+        break;
+      case ('Insertion'):
+        setInsertions([...rois]);
+        break;
+    }
+    setSelectedROIs([...rois]);
+  }
+
   useEffect(() => {
-    setFlattenedPoints(
+    const flattened = 
       points
         .concat(isPolyComplete ? [] : position)
-        .reduce((a, b) => a.concat(b), [])
-    );
-    var newROIs = rois;
+        .reduce((a, b) => a.concat(b), []);
+
+    setFlattenedPoints(flattened);
+
+    var newROIs = selectedROIs;
     if (!isPixelWise && roiEmpty && isPolyComplete) {
-      newROIs.fill({points: points, isPolyComplete: true});
+      newROIs.fill({points: points, flattenedPoints: [...flattened], isPolyComplete: true});
       setROIEmpty(false);
+    } else if (!isPixelWise && roiMode == 'Insertion' && !isPolyComplete) {
+      newROIs.fill({points: points, flattenedPoints: [...flattened], isPolyComplete: true});
+      setROIEmpty(false);
+      setPolyComplete(true);
     } else {
-      newROIs[imageNum] = {points: points, isPolyComplete: isPolyComplete};
+      newROIs[imageNum] = {points: points, flattenedPoints: [...flattened], isPolyComplete: isPolyComplete};
     }
-    setROIs(
-      newROIs
-    );
-    save(newROIs);
+    setROIs(newROIs);
+    save(newROIs, roiMode);
+
   }, [points, isPolyComplete, position]);
 
   useEffect(() => {
     setPoints(
-      rois[imageNum].points
+      selectedROIs[imageNum].points
     );
     setPolyComplete(
-      rois[imageNum].isPolyComplete
+      selectedROIs[imageNum].isPolyComplete
     );
     setFlattenedPoints(
       points
@@ -146,12 +171,13 @@ export function ROICanvas({ save, isPixelWise }) {
   }, [imageNum]);
 
   useEffect(() => {
-    var newROIs = rois;
+    var newROIs = selectedROIs;
     if (!isPixelWise) {
       setPoints([]);
-      newROIs.fill({points: [], isPolyComplete: false});
-      setROIs(newROIs);
-      setROIEmpty(true);
+      newROIs.fill({points: [], flattenedPoints: [], isPolyComplete: false});
+      setEpiROIs(newROIs);
+      setEndoROIs(newROIs);
+      setInsertions(newROIs);
       setPolyComplete(false);
     }
   }, [isPixelWise]);
@@ -160,14 +186,15 @@ export function ROICanvas({ save, isPixelWise }) {
     setPoints(points.slice(0, -1));
     setPolyComplete(false);
     setPosition(points[points.length - 1]);
+    // TODO: Adjust for ROI selections
   };
   const reset = () => {
     setPoints([]);
-    var newROIs = rois;
+    var newROIs = selectedROIs;
     if (!isPixelWise) {
-      newROIs.fill({points: [], isPolyComplete: false});
+      newROIs.fill({points: [], flattenedPoints: [], isPolyComplete: false});
     } else {
-      newROIs[imageNum] = [];
+      newROIs[imageNum] = {points: [], flattenedPoints: [], isPolyComplete: false};
     }
     setROIs(newROIs);
     setROIEmpty(true);
@@ -175,7 +202,7 @@ export function ROICanvas({ save, isPixelWise }) {
   };
   const copyPrev = () => {
     if (imageNum > 0) {
-      const roi = rois[imageNum - 1]
+      const roi = selectedROIs[imageNum - 1];
       setPoints(roi.points);
       setPolyComplete(roi.isPolyComplete);
     }
@@ -194,6 +221,27 @@ export function ROICanvas({ save, isPixelWise }) {
       setPoints(result);
     }
   };
+
+  const handleModeSwitch = (mode) => {
+    setROIMode(mode);
+    var newROIs;
+    switch(mode) {
+      case ('Epicardium'):
+        newROIs = [...epiROIs];
+        break;
+      case ('Endocardium'):
+        newROIs = [...endoROIs];
+        break;
+      case ('Insertion'):
+        newROIs = [...insertions];
+        break;
+    }
+    setSelectedROIs(newROIs);
+    setPoints(newROIs[imageNum].points);
+    setPolyComplete(newROIs[imageNum].isPolyComplete);
+    setROIEmpty(newROIs[imageNum].points.length < 1);
+  }
+
 
   //imageRef.cache();
   //imageRef.filters([Konva.Filters.Brighten]);
@@ -220,6 +268,39 @@ export function ROICanvas({ save, isPixelWise }) {
               filters={[Konva.Filters.Brighten]}
               brightness={0.1}
             />
+            {roiMode == 'Epicardium' ? null : 
+                <StaticPolygon
+                points={epiROIs[imageNum].points}
+                flattenedPoints={epiROIs[imageNum].flattenedPoints}
+                isFinished={epiROIs[imageNum].isPolyComplete}
+                strokeColor={'#00F1FF'}
+                fillColor={'rgb(10, 242, 255, 0.5)'}
+                pointFill={'#0054A8'}
+                pointOnly={false}
+              /> 
+            }
+            {roiMode == 'Endocardium' ? null : 
+                <StaticPolygon
+                points={endoROIs[imageNum].points}
+                flattenedPoints={endoROIs[imageNum].flattenedPoints}
+                isFinished={endoROIs[imageNum].isPolyComplete}
+                strokeColor={'#03ff0a'}
+                fillColor={'rgb(63, 255, 10, 0.5)'}
+                pointFill={'#1e7d04'}
+                pointOnly={false}
+              /> 
+            }
+            {roiMode == 'Insertion' ? null : 
+                <StaticPolygon
+                points={insertions[imageNum].points}
+                flattenedPoints={insertions[imageNum].flattenedPoints}
+                isFinished={insertions[imageNum].isPolyComplete}
+                strokeColor={'#b14aff'}
+                fillColor={null}
+                pointFill={'#6400b0'}
+                pointOnly={true}
+              /> 
+            }
             <PolygonAnnotation
               points={points}
               flattenedPoints={flattenedPoints}
@@ -228,33 +309,36 @@ export function ROICanvas({ save, isPixelWise }) {
               handleMouseOverStartPoint={handleMouseOverStartPoint}
               handleMouseOutStartPoint={handleMouseOutStartPoint}
               isFinished={isPolyComplete}
+              strokeColor={roiMode == 'Epicardium' ? '#00F1FF' : (roiMode == 'Endocardium' ? '#03ff0a' : '#b14aff')}
+              fillColor={roiMode == 'Epicardium' ? 'rgb(10, 242, 255, 0.5)' : (roiMode == 'Endocardium' ? 'rgb(63, 255, 10, 0.5)' : null)}
+              pointFill={roiMode == 'Epicardium' ? '#0054A8' : (roiMode == 'Endocardium' ? '#1e7d04' : '#6400b0')}
+              pointOnly={roiMode === 'Insertion'}
             />
           </Layer>
         </Stage>
         <div
           style={{
             display: "flex",
-            justifyContent: "center",
+            justifyContent: "space-between", 
             alignItems: "center",
-            padding: "20px",
-            gap: "10px"
+            padding: "20px 0",
+            width: "100%",
           }}
         >
-          <Button name="Undo" onClick={undo} style={{margin: "20 5 20 20"}}/>
-          {isPixelWise ? <Button name="Copy Previous" onClick={copyPrev} style={{margin: "20 5"}}/> : <div/>}
-          <Button name="Reset" onClick={reset} style={{margin: "20 5"}}/>
+          <Button name="Previous" onClick={() => prevImage()}/>
+            <p>{`${imageNum + 1} / ${data.length}`}</p>
+          <Button name="Next" onClick={() => nextImage()}/>
         </div>
       </div>
+      <div>
+        <LabelButton name="Epicardium" color="blue" selected={roiMode == "Epicardium"} onClick={() => handleModeSwitch("Epicardium")}/>
+        <LabelButton name="Endocardium" color="green" selected={roiMode == "Endocardium"} onClick={() => handleModeSwitch("Endocardium")}/>
+        {isPixelWise ? <div/> : <LabelButton name="Insertion Point" color="purple" selected={roiMode == "Insertion"} onClick={() => handleModeSwitch("Insertion")}/>}
+        
+        <Button name="Undo" onClick={undo} style={{margin: "50px 10px 10px 30px"}}/>
+        <Button name="Reset" onClick={reset} style={{margin: "10px 10px 10px 30px"}}/>
+        {isPixelWise ? <Button name="Copy Previous" onClick={copyPrev} style={{margin: "10px 10px 10px 30px"}}/> : <div/>}
       </div>
-      <div 
-        style={{
-          display: "flex", 
-          justifyContent: "space-between", 
-          alignItems: "center",
-          marginTop: "20px"}}>
-        <Button name="Previous" onClick={() => prevImage()}/>
-        <p>{`${imageNum + 1} / ${data.length}`}</p>
-        <Button name="Next" onClick={() => nextImage()}/>
       </div>
     </div>
   );

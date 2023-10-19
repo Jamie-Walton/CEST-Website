@@ -17,8 +17,12 @@ const PolygonAnnotation = (props) => {
     handleGroupDragEnd,
     handleMouseOverStartPoint,
     handleMouseOutStartPoint,
+    strokeColor,
+    fillColor,
+    pointFill,
+    pointOnly
   } = props;
-  const vertexRadius = 4;
+  const vertexRadius = pointOnly ? 6 : 4;
 
   const [stage, setStage] = useState();
   const handleGroupMouseOver = (e) => {
@@ -59,10 +63,10 @@ const PolygonAnnotation = (props) => {
     >
       <Line
         points={flattenedPoints}
-        stroke="#00F1FF"
+        stroke={pointOnly ? null : strokeColor}
         strokeWidth={3}
         closed={isFinished}
-        fill="rgb(10, 242, 255,0.5)"
+        fill={fillColor}
       />
       {points.map((point, index) => {
         const x = point[0] - vertexRadius / 2;
@@ -81,8 +85,8 @@ const PolygonAnnotation = (props) => {
             x={x}
             y={y}
             radius={vertexRadius}
-            fill="#0054A8"
-            stroke="#00F1FF"
+            fill={pointFill}
+            stroke={strokeColor}
             strokeWidth={2}
             draggable
             onDragMove={handlePointDragMove}

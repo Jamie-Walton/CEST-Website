@@ -5,7 +5,7 @@ import Button from "../components/Button";
 import Toggle from "../components/Toggle";
 import { FileUpload, generateReport } from "../components/FileUpload.js";
 import { useNavigate } from "react-router-dom";
- import { ROICanvas } from "../containers/ROICanvas";
+ import { ROICanvas } from "../components/ROICanvas";
 
 export function Analyze() {
 
@@ -13,15 +13,27 @@ export function Analyze() {
   const navigate = useNavigate();
   const data = useSelector((state) => state.analyze.data);
 
-  const [rois, setROIs] = useState(Array(37).fill({points: [], isPolyComplete: false}));
+  const [epiROIs, setEpiROIs] = useState(Array(37).fill({points: [], isPolyComplete: false}));
+  const [endoROIs, setEndoROIs] = useState(Array(37).fill({points: [], isPolyComplete: false}));
+  const [insertions, setInsertions] = useState(Array(37).fill([]));
   const [pixelWise, setPixelWise] = useState(false);
 
   const handlePageChange = (page) => {
     navigate(`/${page}`);
   };
 
-  const saveROIs = (rois) => {
-    setROIs(rois);
+  const saveROIs = (rois, type) => {
+    switch (type) {
+      case ("Epicardium"):
+        setEpiROIs(rois);
+        break;
+      case ("Endocardium"):
+        setEndoROIs(rois);
+        break;
+      case ("Insertion"):
+        setInsertions(rois);
+        break;
+    }
   };
 
   const toggleAnalysisMode = (status) => {
@@ -35,7 +47,7 @@ export function Analyze() {
         }
     }
     var id = data[0].id;
-    const report = JSON.stringify({ id, rois, pixelWise });
+    const report = JSON.stringify({ id, epiROIs, endoROIs, insertions, pixelWise });
     axios
         .post(`/report/`, report, config)
         .then((res) => {
@@ -69,7 +81,12 @@ export function Analyze() {
                 <div className="analyze-subsection">
                   <div>
                     <h4>Select Analysis Mode</h4>
-                    <p>Explain pixel-wise detection</p>
+                    <p>
+                      By default, SomethingTool uses segment-wise analysis, averaging pixel 
+                      intensity across a full region of interest. Optionally, you may switch to 
+                      pixel-wise detection to generate z-spectra for each voxel. Note that this 
+                      may result in a longer processing time.
+                    </p>
                   </div>
                   <div className="analyze-side-container">
                     <Toggle action={toggleAnalysisMode}/>
@@ -79,7 +96,7 @@ export function Analyze() {
                 </div>
               </div>
               { data.length > 0 ?
-              <div style={{marginLeft: "24vw", width: "60vw"}}>
+              <div style={{marginLeft: "10vw", marginTop: "5vw", width: "80vw"}}>
                 <h4>Mark ROIs</h4>
                 <p>Use the annotation tool to select the region of interest for each image in your dataset.</p>
                 <ROICanvas save={saveROIs} isPixelWise={pixelWise}/>

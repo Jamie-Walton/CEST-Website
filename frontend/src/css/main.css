@@ -105,6 +105,25 @@ input {
   background-color: #0054A8;
 }
 
+.label-button {
+  background-color: #e4eaf1;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  border-radius: 13px;
+  font-family: proxima-nova, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  padding: 7px 18px 7px 10px;
+  margin: 10px 10px 10px 30px;
+  width: fit-content;
+  cursor: pointer;
+}
+
+.label-button:hover {
+  background-color: #d0dae6;
+}
+
 .roi-button {
   margin: 20px 5px;
 }
