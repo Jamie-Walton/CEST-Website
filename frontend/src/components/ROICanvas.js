@@ -25,10 +25,10 @@ export function ROICanvas({ save, isPixelWise }) {
   const data = useSelector((state) => state.analyze.data);
   const [imageNum, setImageNum] = useState(0);
   const [roiMode, setROIMode] = useState("Epicardium");
-  const [epiROIs, setEpiROIs] = useState(JSON.parse(JSON.stringify(Array.from({length: 37}, e => ({points: [], flattenedPoints: [], isPolyComplete: false}))))); // TODO: Fix static!
-  const [endoROIs, setEndoROIs] = useState(JSON.parse(JSON.stringify(Array.from({length: 37}, e => ({points: [], flattenedPoints: [], isPolyComplete: false})))));
-  const [insertions, setInsertions] = useState(JSON.parse(JSON.stringify(Array.from({length: 37}, e => ({points: [], flattenedPoints: [], isPolyComplete: false})))));
-  const [selectedROIs, setSelectedROIs] = useState(JSON.parse(JSON.stringify(Array.from({length: 37}, e => ({points: [], flattenedPoints: [], isPolyComplete: false})))));
+  const [epiROIs, setEpiROIs] = useState(JSON.parse(JSON.stringify(Array.from({length: data.length}, e => ({points: [], flattenedPoints: [], isPolyComplete: false})))));
+  const [endoROIs, setEndoROIs] = useState(JSON.parse(JSON.stringify(Array.from({length: data.length}, e => ({points: [], flattenedPoints: [], isPolyComplete: false})))));
+  const [insertions, setInsertions] = useState(JSON.parse(JSON.stringify(Array.from({length: data.length}, e => ({points: [], flattenedPoints: [], isPolyComplete: false})))));
+  const [selectedROIs, setSelectedROIs] = useState(JSON.parse(JSON.stringify(Array.from({length: data.length}, e => ({points: [], flattenedPoints: [], isPolyComplete: false})))));
   const [roiEmpty, setROIEmpty] = useState(true);
   const [image, setImage] = useState();
   const imageRef = useRef(null);
