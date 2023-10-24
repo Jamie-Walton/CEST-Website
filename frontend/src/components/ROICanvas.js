@@ -81,13 +81,14 @@ export function ROICanvas({ save, isPixelWise }) {
   };
   //drawing begins when mousedown event fires.
   const handleMouseDown = (e) => {
-    if (isPolyComplete) return;
+    if (isPolyComplete && roiMode !== 'Insertion') return;
     const stage = e.target.getStage();
     const mousePos = getMousePos(stage);
     if (isMouseOverPoint && points.length >= 3) {
       setPolyComplete(true);
     } else if (roiMode === 'Insertion') {
       setPoints([points, mousePos]);
+      setPolyComplete(true);
     } else {
       setPoints([...points, mousePos]);
     }
@@ -144,10 +145,6 @@ export function ROICanvas({ save, isPixelWise }) {
     if (!isPixelWise && roiEmpty && isPolyComplete) {
       newROIs.fill({points: points, flattenedPoints: [...flattened], isPolyComplete: true});
       setROIEmpty(false);
-    } else if (!isPixelWise && roiMode == 'Insertion' && !isPolyComplete) {
-      newROIs.fill({points: points, flattenedPoints: [...flattened], isPolyComplete: true});
-      setROIEmpty(false);
-      setPolyComplete(true);
     } else {
       newROIs[imageNum] = {points: points, flattenedPoints: [...flattened], isPolyComplete: isPolyComplete};
     }
@@ -174,7 +171,7 @@ export function ROICanvas({ save, isPixelWise }) {
     var newROIs = selectedROIs;
     if (!isPixelWise) {
       setPoints([]);
-      newROIs.fill({points: [], flattenedPoints: [], isPolyComplete: false});
+      newROIs.fill({points: [], flattenedPoints: [], isPolyComplete: false, roiEmpty: true});
       setEpiROIs(newROIs);
       setEndoROIs(newROIs);
       setInsertions(newROIs);
