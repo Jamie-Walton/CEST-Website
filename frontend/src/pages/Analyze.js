@@ -67,7 +67,7 @@ export function Analyze() {
       return(
         <main>
             <header>
-                <h2>Vandsburger Lab</h2>
+                <h2 onClick={() => handlePageChange('')}>Vandsburger Lab</h2>
                 <p className="header-subtitle">University of California, Berkeley</p>
             </header>
             <div className="page-container analyze-page">
