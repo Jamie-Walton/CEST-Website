@@ -25,10 +25,10 @@ export function ROICanvas({ save, isPixelWise }) {
   const data = useSelector((state) => state.analyze.data);
   const [imageNum, setImageNum] = useState(0);
   const [roiMode, setROIMode] = useState("Epicardium");
-  const [epiROIs, setEpiROIs] = useState(JSON.parse(JSON.stringify(Array.from({length: data.length}, e => ({points: [], flattenedPoints: [], isPolyComplete: false})))));
-  const [endoROIs, setEndoROIs] = useState(JSON.parse(JSON.stringify(Array.from({length: data.length}, e => ({points: [], flattenedPoints: [], isPolyComplete: false})))));
-  const [insertions, setInsertions] = useState(JSON.parse(JSON.stringify(Array.from({length: data.length}, e => ({points: [], flattenedPoints: [], isPolyComplete: false})))));
-  const [selectedROIs, setSelectedROIs] = useState(JSON.parse(JSON.stringify(Array.from({length: data.length}, e => ({points: [], flattenedPoints: [], isPolyComplete: false})))));
+  const [epiROIs, setEpiROIs] = useState([...Array.from({length: data.length}, e => ({points: [], flattenedPoints: [], isPolyComplete: false}))]);
+  const [endoROIs, setEndoROIs] = useState([...epiROIs]);
+  const [insertions, setInsertions] = useState([...epiROIs]);
+  const [selectedROIs, setSelectedROIs] = useState([...epiROIs]);
   const [roiEmpty, setROIEmpty] = useState(true);
   const [image, setImage] = useState();
   const imageRef = useRef(null);
@@ -39,8 +39,10 @@ export function ROICanvas({ save, isPixelWise }) {
   const [position, setPosition] = useState([0, 0]);
   const [isMouseOverPoint, setMouseOverPoint] = useState(false);
   const [isPolyComplete, setPolyComplete] = useState(false);
-  var img;
-  data.length > 0 ? img = `/media/uploads/${data[imageNum].id}/images/${data[imageNum].image}.png` : img = null
+  var img = null;
+  if (data.length > 0 && data.length > imageNum) {
+    img = `/media/uploads/${data[imageNum].id}/images/${data[imageNum].image}.png`
+  }
   const videoElement = useMemo(() => {
     const element = new window.Image();
     element.width = 650;
@@ -132,6 +134,18 @@ export function ROICanvas({ save, isPixelWise }) {
     }
     setSelectedROIs([...rois]);
   }
+
+  useEffect(() => {
+    setImageNum(0);
+    setPoints([]);
+
+    setSelectedROIs([...Array.from({length: data.length}, e => ({points: [], flattenedPoints: [], isPolyComplete: false}))]);
+    setEpiROIs([...Array.from({length: data.length}, e => ({points: [], flattenedPoints: [], isPolyComplete: false}))]);
+    setEndoROIs([...Array.from({length: data.length}, e => ({points: [], flattenedPoints: [], isPolyComplete: false}))]);
+    setInsertions([...Array.from({length: data.length}, e => ({points: [], flattenedPoints: [], isPolyComplete: false}))]);
+    setROIEmpty(true);
+    setPolyComplete(false);
+  }, [data])
 
   useEffect(() => {
     const flattened = 

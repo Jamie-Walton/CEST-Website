@@ -13,14 +13,20 @@ export function Analyze() {
   const navigate = useNavigate();
   const data = useSelector((state) => state.analyze.data);
 
-  const [epiROIs, setEpiROIs] = useState(Array(37).fill({points: [], isPolyComplete: false}));
-  const [endoROIs, setEndoROIs] = useState(Array(37).fill({points: [], isPolyComplete: false}));
-  const [insertions, setInsertions] = useState(Array(37).fill([]));
+  const [epiROIs, setEpiROIs] = useState(Array(data.length).fill({points: [], isPolyComplete: false}));
+  const [endoROIs, setEndoROIs] = useState(Array(data.length).fill({points: [], isPolyComplete: false}));
+  const [insertions, setInsertions] = useState(Array(data.length).fill([]));
   const [pixelWise, setPixelWise] = useState(false);
 
   const handlePageChange = (page) => {
     navigate(`/${page}`);
   };
+
+  const onUpload = (len) => {
+    setEpiROIs(Array(len).fill({points: [], isPolyComplete: false}));
+    setEndoROIs(Array(len).fill({points: [], isPolyComplete: false}));
+    setInsertions(Array(len).fill({points: [], isPolyComplete: false}));
+  }
 
   const saveROIs = (rois, type) => {
     switch (type) {
@@ -74,7 +80,7 @@ export function Analyze() {
                     <p>Select the folder containing the DICOM files for analysis. Make sure to remove all identifying information from the data before upload.</p>
                   </div>
                   <div className="analyze-side-container">
-                    <FileUpload/>
+                    <FileUpload onUpload={onUpload}/>
                   </div>
                     
                 </div>
