@@ -6,6 +6,7 @@ import { Stage, Layer, Image } from "react-konva";
 import Konva from 'konva';
 import Button from "./Button";
 import LabelButton from "./LabelButton";
+import useImage from 'use-image';
 
 
 const wrapperStyle = {
@@ -30,27 +31,30 @@ export function ROICanvas({ save, isPixelWise }) {
   const [insertions, setInsertions] = useState([...epiROIs]);
   const [selectedROIs, setSelectedROIs] = useState([...epiROIs]);
   const [roiEmpty, setROIEmpty] = useState(true);
-  const [image, setImage] = useState();
   const imageRef = useRef(null);
   const dataRef = useRef(null);
   const [points, setPoints] = useState([]);
-  const [size, setSize] = useState({});
   const [flattenedPoints, setFlattenedPoints] = useState();
   const [position, setPosition] = useState([0, 0]);
   const [isMouseOverPoint, setMouseOverPoint] = useState(false);
   const [isPolyComplete, setPolyComplete] = useState(false);
+  const [brightness, setBrightness] = useState(0);
+  const [contrast, setContrast] = useState(0);
   var img = null;
-  if (data.length > 0 && data.length > imageNum) {
-    img = `/media/uploads/${data[imageNum].id}/images/${data[imageNum].image}.png`
+  if (data && data.length > 0 && data.length > imageNum) {
+    img = `/media/uploads/${data[imageNum].id}/images/${data[imageNum].image}.png`;
   }
-  const videoElement = useMemo(() => {
-    const element = new window.Image();
-    element.width = 650;
-    element.height = 400;
-    element.src = img;
-    return element;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [img]); //it may come from redux so it may be dependency that's why I left it as dependecny...
+
+  const ImageObj = (url) => {
+    const [image] = useImage(url);
+    return image;
+  };
+
+  const image = ImageObj(img);
+  const size = {
+    width: 650,
+    height: 400,
+  };
 
   const prevImage = () => {
     if (imageNum > 0) {
@@ -64,20 +68,6 @@ export function ROICanvas({ save, isPixelWise }) {
     }
   };
 
-  useEffect(() => {
-    const onload = function () {
-      setSize({
-        width: videoElement.width,
-        height: videoElement.height,
-      });
-      setImage(videoElement);
-      imageRef.current = videoElement;
-    };
-    videoElement.addEventListener("load", onload);
-    return () => {
-      videoElement.removeEventListener("load", onload);
-    };
-  }, [videoElement]);
   const getMousePos = (stage) => {
     return [stage.getPointerPosition().x, stage.getPointerPosition().y];
   };
@@ -134,6 +124,12 @@ export function ROICanvas({ save, isPixelWise }) {
     }
     setSelectedROIs([...rois]);
   }
+
+  useEffect(() => {
+    if (image) {
+      imageRef.current.cache();
+    }
+  }, [image]);
 
   useEffect(() => {
     setImageNum(0);
@@ -253,10 +249,13 @@ export function ROICanvas({ save, isPixelWise }) {
     setROIEmpty(newROIs[imageNum].points.length < 1);
   }
 
+  const onBrightnessChange = (e) => {
+    setBrightness(e.target.value)
+  }
 
-  //imageRef.cache();
-  //imageRef.filters([Konva.Filters.Brighten]);
-  //imageRef.brightness(0.5);
+  const onContrastChange = (e) => {
+    setContrast(Number(e.target.value))
+  }
 
   return (
     <div>
@@ -276,8 +275,9 @@ export function ROICanvas({ save, isPixelWise }) {
               y={0}
               width={size.width}
               height={size.height}
-              filters={[Konva.Filters.Brighten]}
-              brightness={0.1}
+              filters={[Konva.Filters.Brighten, Konva.Filters.Contrast]}
+              brightness={brightness}
+              contrast={contrast}
             />
             {roiMode == 'Epicardium' ? null : 
                 <StaticPolygon
@@ -349,6 +349,12 @@ export function ROICanvas({ save, isPixelWise }) {
         <Button name="Undo" onClick={undo} style={{margin: "50px 10px 10px 30px"}}/>
         <Button name="Reset" onClick={reset} style={{margin: "10px 10px 10px 30px"}}/>
         {isPixelWise ? <Button name="Copy Previous" onClick={copyPrev} style={{margin: "10px 10px 10px 30px"}}/> : <div/>}
+        <div>
+          <input type="range" id="brightness" name="brightness" min="-0.5" max="0.5" step="0.01" value={brightness} onChange={onBrightnessChange} style={{margin: "50px 10px 0px 30px"}}/>
+          <label for="brightness" style={{margin: "0px 10px 10px 30px"}}>Brightness</label>
+          <input type="range" id="contrast" name="contrast" min="-100" max="100" step="1" value={contrast} onChange={onContrastChange} style={{margin: "10px 10px 0px 30px"}}/>
+          <label for="contrast" style={{margin: "0px 10px 10px 30px"}}>Contrast</label>
+        </div>
       </div>
       </div>
     </div>

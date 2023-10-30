@@ -56,7 +56,7 @@ h4 {
     margin: 0 0 10px 0;
 }
 
-p {
+p, label {
     font-family: proxima-nova, sans-serif;
     font-size: 14px;
     margin: 0;
