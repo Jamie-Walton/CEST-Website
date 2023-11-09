@@ -1,7 +1,6 @@
-import Landing from './pages/Landing';
 import Page from './pages/Page';
+import { Landing } from './pages/Landing';
 import { Analyze } from './pages/Analyze';
-import { ROISelection } from './pages/ROISelection';
 import './css/main.css';
 import './css/pages.css';
 
@@ -18,9 +17,8 @@ class App extends Component {
       <Provider store={store}>
         <Router>
           <Routes>
-              <Route exact path='/' element={<Landing/>} />
+              <Route exact path='/' element={<Page page={<Landing/>}/>} />
               <Route path='/analyze' element={<Page page={<Analyze/>}/>} />
-              <Route path='/roi' element={<Page page={<ROISelection/>}/>} />
               <Route path='*' element={<Navigate to='/' />} />
           </Routes>
         </Router>

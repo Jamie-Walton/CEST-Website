@@ -5,7 +5,7 @@ import axios from "axios";
 import Button from "../components/Button";
 
 
-export function FileUpload() {
+export function FileUpload({ onUpload }) {
 
     const dispatch = useDispatch()
     var directory = '';
@@ -30,11 +30,11 @@ export function FileUpload() {
             .post(`/upload/`, formData, config)
             .then((res) => {
                 dispatch(filesUploaded(res.data));
+                onUpload(res.data.length);
             })
             .catch((err) => {
                 console.log(err);
             });
-
     };
   
       return(

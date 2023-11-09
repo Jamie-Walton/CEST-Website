@@ -26,6 +26,7 @@ SECRET_KEY = 'django-insecure-jlf-xo=s@$kmvgysgmx&9!+@oln6u929*6%%gh8)qb2410a$gj
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+CORS_ORIGIN_ALLOW_ALL = True
 ALLOWED_HOSTS = []
 
 
