@@ -30,7 +30,7 @@ const StaticPolygon = (props) => {
         stroke={pointOnly ? null : strokeColor}
         strokeWidth={3}
         closed={isFinished}
-        fill={fillColor}
+        fill={null}
       />
       {displayPoints.map((point, index) => {
         const x = point[0] - vertexRadius / 2;

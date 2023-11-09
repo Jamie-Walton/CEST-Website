@@ -66,7 +66,7 @@ const PolygonAnnotation = (props) => {
         stroke={pointOnly ? null : strokeColor}
         strokeWidth={3}
         closed={isFinished}
-        fill={fillColor}
+        fill={null}
       />
       {points.map((point, index) => {
         const x = point[0] - vertexRadius / 2;

@@ -1,5 +1,6 @@
-from marshal import load
-import re
+import numpy as np
+from matplotlib.path import Path
+import matplotlib.pyplot as plt
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.decorators import api_view
@@ -48,34 +49,28 @@ class UploadView(APIView):
 @api_view(('POST',))
 def report(request):
 
-    def pointsToMask(points):
-        '''
-        Example points data structure:
-        [
-            [
-                [207.40625, 229.203125], 
-                [272.40625, 165.203125], 
-                [345.40625, 238.203125], 
-                [276.40625, 302.203125], 
-                [198.40625, 283.203125]
-            ],
-            [
-                [207.40625, 229.203125], 
-                [272.40625, 165.203125], 
-                [345.40625, 238.203125], 
-                [276.40625, 302.203125], 
-                [198.40625, 283.203125]
-            ],
-            [
-                [207.40625, 229.203125], 
-                [272.40625, 165.203125], 
-                [345.40625, 238.203125], 
-                [276.40625, 302.203125], 
-                [198.40625, 283.203125]
-            ]
-        ]
-        '''
-        #TODO: Fill in function
+    def pointsToMask(poly_verts_list):
+        '''Convert a list of polygon vertices to a list of masks'''
+        
+        nx, ny = 500, 500
+        x, y = np.meshgrid(np.arange(nx), np.arange(ny))
+        x, y = x.flatten(), y.flatten()
+        points = np.vstack((x, y)).T
+        grid = np.zeros(nx * ny, dtype=bool)
+
+        if len(poly_verts_list[0]) == 2:
+            poly_verts_list = [[point[1]] for point in poly_verts_list]
+
+        for poly_verts in poly_verts_list:
+        
+            path = Path(poly_verts)
+            # Check if points are inside the polygon
+            poly_mask = path.contains_points(points)
+            grid = np.logical_or(grid, poly_mask)
+
+        grid = grid.reshape((ny, nx))
+        return grid
+    
     
     if request.method == 'POST':
         identifier = request.data["id"]
@@ -88,6 +83,7 @@ def report(request):
 
         insertion_rois = request.data["insertions"]
         insertion_points = [roi["points"] for roi in insertion_rois]
+        print(insertion_points)
 
         pixel_wise = request.data["pixelWise"]
         
@@ -96,5 +92,8 @@ def report(request):
             "endo": pointsToMask(endo_points), 
             "insertions": pointsToMask(insertion_points)
         }
+
+        #plt.imshow(masks['epi'], cmap='Blues', origin='upper')
+        #plt.show()
 
         return JsonResponse({})
