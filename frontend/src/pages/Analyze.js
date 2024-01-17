@@ -15,7 +15,8 @@ export function Analyze() {
 
   const [epiROIs, setEpiROIs] = useState(Array(data.length).fill({points: [], isPolyComplete: false}));
   const [endoROIs, setEndoROIs] = useState(Array(data.length).fill({points: [], isPolyComplete: false}));
-  const [insertions, setInsertions] = useState(Array(data.length).fill([]));
+  const [arvs, setARVs] = useState(Array(data.length).fill([]));
+  const [irvs, setIRVs] = useState(Array(data.length).fill([]));
   const [pixelWise, setPixelWise] = useState(false);
 
   const handlePageChange = (page) => {
@@ -25,7 +26,8 @@ export function Analyze() {
   const onUpload = (len) => {
     setEpiROIs(Array(len).fill({points: [], isPolyComplete: false}));
     setEndoROIs(Array(len).fill({points: [], isPolyComplete: false}));
-    setInsertions(Array(len).fill({points: [], isPolyComplete: false}));
+    setARVs(Array(len).fill({points: [], isPolyComplete: false}));
+    setIRVs(Array(len).fill({points: [], isPolyComplete: false}));
   }
 
   const saveROIs = (rois, type) => {
@@ -36,8 +38,11 @@ export function Analyze() {
       case ("Endocardium"):
         setEndoROIs(rois);
         break;
-      case ("Insertion"):
-        setInsertions(rois);
+      case ("ARV"):
+        setARVs(rois);
+        break;
+      case ("IRV"):
+        setIRVs(rois);
         break;
     }
   };
@@ -53,7 +58,7 @@ export function Analyze() {
         }
     }
     var id = data[0].id;
-    const report = JSON.stringify({ id, epiROIs, endoROIs, insertions, pixelWise });
+    const report = JSON.stringify({ id, epiROIs, endoROIs, arvs, irvs, pixelWise });
     axios
         .post(`/report/`, report, config)
         .then((res) => {

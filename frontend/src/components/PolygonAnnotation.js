@@ -18,7 +18,6 @@ const PolygonAnnotation = (props) => {
     handleMouseOverStartPoint,
     handleMouseOutStartPoint,
     strokeColor,
-    fillColor,
     pointFill,
     pointOnly
   } = props;

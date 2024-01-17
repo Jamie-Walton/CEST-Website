@@ -14,7 +14,6 @@ const StaticPolygon = (props) => {
     flattenedPoints,
     isFinished,
     strokeColor,
-    fillColor,
     pointFill,
     pointOnly
   } = props;

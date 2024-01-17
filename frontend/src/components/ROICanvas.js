@@ -21,6 +21,13 @@ const columnStyle = {
   backgroundColor: "white",
 };
 
+const colorScheme = {
+  Epicardium: {stroke: "#ED6A5A", fill: "#F5ADA3"},
+  Endocardium: {stroke: "#FFC15E", fill: "#FFE8C2"},
+  ARV: {stroke: "#06BCC1", fill: "#74F6FB"},
+  IRV: {stroke: "#228B22", fill: "#9CE79C"}
+}
+
 export function ROICanvas({ save, isPixelWise }) {
 
   const data = useSelector((state) => state.analyze.data);
@@ -28,7 +35,8 @@ export function ROICanvas({ save, isPixelWise }) {
   const [roiMode, setROIMode] = useState("Epicardium");
   const [epiROIs, setEpiROIs] = useState([...Array.from({length: data.length}, e => ({points: [], flattenedPoints: [], isPolyComplete: false}))]);
   const [endoROIs, setEndoROIs] = useState([...epiROIs]);
-  const [insertions, setInsertions] = useState([...epiROIs]);
+  const [arvs, setARVs] = useState([...epiROIs]);
+  const [irvs, setIRVs] = useState([...epiROIs]);
   const [selectedROIs, setSelectedROIs] = useState([...epiROIs]);
   const [roiEmpty, setROIEmpty] = useState(true);
   const imageRef = useRef(null);
@@ -73,12 +81,12 @@ export function ROICanvas({ save, isPixelWise }) {
   };
   //drawing begins when mousedown event fires.
   const handleMouseDown = (e) => {
-    if (isPolyComplete && roiMode !== 'Insertion') return;
+    if (isPolyComplete && (roiMode !== 'ARV' && roiMode !== 'IRV')) return;
     const stage = e.target.getStage();
     const mousePos = getMousePos(stage);
     if (isMouseOverPoint && points.length >= 3) {
       setPolyComplete(true);
-    } else if (roiMode === 'Insertion') {
+    } else if (roiMode === 'ARV' || roiMode === 'IRV') {
       setPoints([points, mousePos]);
       setPolyComplete(true);
     } else {
@@ -118,8 +126,11 @@ export function ROICanvas({ save, isPixelWise }) {
       case ('Endocardium'):
         setEndoROIs([...rois]);
         break;
-      case ('Insertion'):
-        setInsertions([...rois]);
+      case ('ARV'):
+        setARVs([...rois]);
+        break;
+      case ('IRV'):
+        setIRVs([...rois]);
         break;
     }
     setSelectedROIs([...rois]);
@@ -138,7 +149,8 @@ export function ROICanvas({ save, isPixelWise }) {
     setSelectedROIs([...Array.from({length: data.length}, e => ({points: [], flattenedPoints: [], isPolyComplete: false}))]);
     setEpiROIs([...Array.from({length: data.length}, e => ({points: [], flattenedPoints: [], isPolyComplete: false}))]);
     setEndoROIs([...Array.from({length: data.length}, e => ({points: [], flattenedPoints: [], isPolyComplete: false}))]);
-    setInsertions([...Array.from({length: data.length}, e => ({points: [], flattenedPoints: [], isPolyComplete: false}))]);
+    setARVs([...Array.from({length: data.length}, e => ({points: [], flattenedPoints: [], isPolyComplete: false}))]);
+    setIRVs([...Array.from({length: data.length}, e => ({points: [], flattenedPoints: [], isPolyComplete: false}))]);
     setROIEmpty(true);
     setPolyComplete(false);
   }, [data])
@@ -184,7 +196,8 @@ export function ROICanvas({ save, isPixelWise }) {
       newROIs.fill({points: [], flattenedPoints: [], isPolyComplete: false, roiEmpty: true});
       setEpiROIs(newROIs);
       setEndoROIs(newROIs);
-      setInsertions(newROIs);
+      setARVs(newROIs);
+      setIRVs(newROIs);
       setPolyComplete(false);
     }
   }, [isPixelWise]);
@@ -239,8 +252,11 @@ export function ROICanvas({ save, isPixelWise }) {
       case ('Endocardium'):
         newROIs = [...endoROIs];
         break;
-      case ('Insertion'):
-        newROIs = [...insertions];
+      case ('ARV'):
+        newROIs = [...arvs];
+        break;
+      case ('IRV'):
+        newROIs = [...irvs];
         break;
     }
     setSelectedROIs(newROIs);
@@ -284,9 +300,8 @@ export function ROICanvas({ save, isPixelWise }) {
                 points={epiROIs[imageNum].points}
                 flattenedPoints={epiROIs[imageNum].flattenedPoints}
                 isFinished={epiROIs[imageNum].isPolyComplete}
-                strokeColor={'#00F1FF'}
-                fillColor={'rgb(10, 242, 255, 0.5)'}
-                pointFill={'#0054A8'}
+                strokeColor={colorScheme['Epicardium'].stroke}
+                pointFill={colorScheme['Epicardium'].fill}
                 pointOnly={false}
               /> 
             }
@@ -295,20 +310,28 @@ export function ROICanvas({ save, isPixelWise }) {
                 points={endoROIs[imageNum].points}
                 flattenedPoints={endoROIs[imageNum].flattenedPoints}
                 isFinished={endoROIs[imageNum].isPolyComplete}
-                strokeColor={'#03ff0a'}
-                fillColor={'rgb(63, 255, 10, 0.5)'}
-                pointFill={'#1e7d04'}
+                strokeColor={colorScheme['Endocardium'].stroke}
+                pointFill={colorScheme['Endocardium'].fill}
                 pointOnly={false}
               /> 
             }
-            {roiMode == 'Insertion' ? null : 
+            {roiMode == 'ARV' ? null : 
                 <StaticPolygon
-                points={insertions[imageNum].points}
-                flattenedPoints={insertions[imageNum].flattenedPoints}
-                isFinished={insertions[imageNum].isPolyComplete}
-                strokeColor={'#b14aff'}
-                fillColor={null}
-                pointFill={'#6400b0'}
+                points={arvs[imageNum].points}
+                flattenedPoints={arvs[imageNum].flattenedPoints}
+                isFinished={arvs[imageNum].isPolyComplete}
+                strokeColor={colorScheme['ARV'].stroke}
+                pointFill={colorScheme['ARV'].fill}
+                pointOnly={true}
+              /> 
+            }
+            {roiMode == 'IRV' ? null : 
+                <StaticPolygon
+                points={irvs[imageNum].points}
+                flattenedPoints={irvs[imageNum].flattenedPoints}
+                isFinished={irvs[imageNum].isPolyComplete}
+                strokeColor={colorScheme['IRV'].stroke}
+                pointFill={colorScheme['IRV'].fill}
                 pointOnly={true}
               /> 
             }
@@ -320,10 +343,9 @@ export function ROICanvas({ save, isPixelWise }) {
               handleMouseOverStartPoint={handleMouseOverStartPoint}
               handleMouseOutStartPoint={handleMouseOutStartPoint}
               isFinished={isPolyComplete}
-              strokeColor={roiMode == 'Epicardium' ? '#00F1FF' : (roiMode == 'Endocardium' ? '#03ff0a' : '#b14aff')}
-              fillColor={roiMode == 'Epicardium' ? 'rgb(10, 242, 255, 0.5)' : (roiMode == 'Endocardium' ? 'rgb(63, 255, 10, 0.5)' : null)}
-              pointFill={roiMode == 'Epicardium' ? '#0054A8' : (roiMode == 'Endocardium' ? '#1e7d04' : '#6400b0')}
-              pointOnly={roiMode === 'Insertion'}
+              strokeColor={colorScheme[roiMode].stroke}
+              pointFill={colorScheme[roiMode].fill}
+              pointOnly={roiMode === 'ARV' || roiMode === 'IRV'}
             />
           </Layer>
         </Stage>
@@ -342,9 +364,10 @@ export function ROICanvas({ save, isPixelWise }) {
         </div>
       </div>
       <div>
-        <LabelButton name="Epicardium" color="blue" selected={roiMode == "Epicardium"} onClick={() => handleModeSwitch("Epicardium")}/>
-        <LabelButton name="Endocardium" color="green" selected={roiMode == "Endocardium"} onClick={() => handleModeSwitch("Endocardium")}/>
-        {isPixelWise ? <div/> : <LabelButton name="Insertion Point" color="purple" selected={roiMode == "Insertion"} onClick={() => handleModeSwitch("Insertion")}/>}
+        <LabelButton name="Epicardium" color={colorScheme['Epicardium'].stroke} selected={roiMode == "Epicardium"} onClick={() => handleModeSwitch("Epicardium")}/>
+        <LabelButton name="Endocardium" color={colorScheme['Endocardium'].stroke} selected={roiMode == "Endocardium"} onClick={() => handleModeSwitch("Endocardium")}/>
+        {isPixelWise ? <div/> : <LabelButton name="ARV" color={colorScheme['ARV'].stroke} selected={roiMode == "ARV"} onClick={() => handleModeSwitch("ARV")}/>}
+        {isPixelWise ? <div/> : <LabelButton name="IRV" color={colorScheme['IRV'].stroke} selected={roiMode == "IRV"} onClick={() => handleModeSwitch("IRV")}/>}
         
         <Button name="Undo" onClick={undo} style={{margin: "50px 10px 10px 30px"}}/>
         <Button name="Reset" onClick={reset} style={{margin: "10px 10px 10px 30px"}}/>
