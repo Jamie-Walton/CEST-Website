@@ -11,6 +11,8 @@ class Dataset(models.Model):
     identifier = models.CharField(max_length=20)
     owner = models.CharField(max_length=50, blank=True)
     institution = models.CharField(max_length=50, blank=True)
+    image_width = models.FloatField(default=0)
+    image_height = models.FloatField(default=0)
     
     def __str__(self):
         return f'Dataset<{self.identifier}>'
