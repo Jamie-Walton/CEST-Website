@@ -1,5 +1,6 @@
 import numpy as np
 import math
+from statistics import mean, stdev
 
 def create_spectrum_roi(data, epi, endo):
     roi_list = ["epi", "endo"]
@@ -75,3 +76,41 @@ def segment(image, mask, arv, irv):
 
     return (segmented_pixels, segmented_indices)
 
+
+def generate_zspec(images, masks, arvs, irvs):
+
+    signal_intensities = []
+    signal_mean = []
+    signal_std = []
+    signal_n = []
+    indices = []
+    values = []
+    zspec = np.zeros((len(images) - 1, 6))
+
+    for i in range(len(images)):
+        intensities, inds = segment(images[i], masks[i], arvs[i], irvs[i])
+        values.append(intensities)
+        indices.append(inds)
+
+        sig_intensity, sig_mean, sig_std, sig_n = [], [], [], []
+        for seg in range(6):
+            v = intensities[seg]
+            ids = np.isfinite(v)
+            sig_intensity += v[ids]
+            sig_mean += mean(v[ids])
+            sig_std += stdev(v[ids])
+            sig_n += len(v[ids])
+
+        signal_intensities.append(sig_intensity)
+        signal_mean.append(sig_mean)
+        signal_std.append(sig_std)
+        signal_n.append(sig_n)
+
+    for seg in range(1,6):
+        zspec[:, seg] = signal_mean[1:] / signal_mean[0, seg]
+
+    return zspec, signal_mean, signal_std, signal_n, signal_intensities, indices
+
+
+def b0_correction(freq_offsets, zspec):
+    return (freq_offsets, zspec)

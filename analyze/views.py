@@ -1,23 +1,19 @@
-import numpy as np
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.decorators import api_view
-from rest_framework.response import Response
 from django.http.response import JsonResponse
 from backend.settings import MEDIA_ROOT
-from .tools.berkeley.resources.cest_analysis import zspec_voxel, zspec_avg, plt_avg
 
+import numpy as np
 from pydicom import dcmread
 from analyze.pydicom_PIL import get_PIL_image
 from PIL import Image
-
 import secrets, string
 import os
 
 from analyze.models import Dataset, File
 from analyze.extract_data import load_data, pointsToMask
-from analyze.analyze_data import create_spectrum_roi
-from analyze.tools.berkeley.resources.b0_correction import b0_correction, interpolate_wassr, wassr_b0_map
+from analyze.analyze_data import generate_zspec, b0_correction
 
 
 class UploadView(APIView):
@@ -51,44 +47,46 @@ class UploadView(APIView):
         dataset.image_height = height
         dataset.save()
         
-        return JsonResponse({'images': images})
+        return JsonResponse({'images': images, 'width': width, 'height': height})
 
 
 @api_view(('POST',))
 def report(request):
-
     
     if request.method == 'POST':
 
+        # Retrieve dataset
         identifier = request.data["id"]
         ds = Dataset.objects.get(identifier=identifier)
         width, height = ds.image_width, ds.image_height
-        data, cest_offsets = load_data(identifier)
+        data, freq_offsets = load_data(identifier)
+        reference_frequency = 1000
 
-        epi_rois = request.data["epiROIs"]
-        epi_points = [[roi["points"]] for roi in epi_rois]
-
-        endo_rois = request.data["endoROIs"]
-        endo_points = [[roi["points"]] for roi in endo_rois]
-
-        arv_rois = request.data["arvs"]
-        arv_points = [[roi["points"]] for roi in arv_rois]
-
-        irv_rois = request.data["irvs"]
-        irv_points = [[roi["points"]] for roi in irv_rois]
-
+        # Unpack data from frontend
+        epi_points = [[roi["points"]] for roi in request.data["epiROIs"]]
+        endo_points = [[roi["points"]] for roi in request.data["endoROIs"]]
+        arv_points = [[roi["points"]] for roi in request.data["arvs"]]
+        irv_points = [[roi["points"]] for roi in request.data["irvs"]]
         pixel_wise = request.data["pixelWise"]
+        epis = [pointsToMask(p, width, height).astype(int) for p in epi_points],
+        endos = [pointsToMask(p, width, height).astype(int) for p in endo_points], 
+        arvs = [pointsToMask(p, width, height).astype(int) for p in arv_points],
+        irvs = [pointsToMask(p, width, height).astype(int) for p in irv_points]
         
-        masks = {
-            "epi": [pointsToMask(p, width, height) for p in epi_points], 
-            "endo": [pointsToMask(p, width, height) for p in endo_points], 
-            "arvs": [pointsToMask(p, width, height) for p in arv_points],
-            "irvs": [pointsToMask(p, width, height) for p in irv_points]
-        }
+        # Create myocardium mask
+        masks = [np.subtract(epi, endo) for epi, endo in zip(epis[0], endos[0])]
 
-        wassr_offsets_interp, wassr_zspecs_interp = interpolate_wassr(wassr_offsets, wassr_zspecs)
-        b0_map = wassr_b0_map(wassr_offsets_interp, wassr_zspecs_interp)
-        cest_zspecs = b0_correction(cest_offsets, data, b0_map)
-        cest_roi, map_mask = create_spectrum_roi(data, cest_zspecs)
+        # Sort images by frequency
+        data = [d for (d, f) in sorted(zip(data, freq_offsets), key=lambda tup : tup[1])]
+
+        # Generate z-spectra
+        zspec, signal_mean, signal_std, signal_n, signal_intensities, indices = \
+            generate_zspec(data, masks, arvs, irvs) # may need to fix dimensions of data?
+
+        # TODO: B0 Correction
+        x_corrected, b0_shift = b0_correction(freq_offsets[1:], zspec)
+
+        # TODO: Lorentzian Fitting
+        # TODO: Package Results
 
         return JsonResponse({})

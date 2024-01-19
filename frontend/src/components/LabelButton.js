@@ -1,7 +1,6 @@
 import React from "react";
 
 const LabelButton = ({ name, color, selected, onClick, className }) => {
-  console.log(color)
   return (
     <div 
         className={`label-button ${className}`} 

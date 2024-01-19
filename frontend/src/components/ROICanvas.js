@@ -31,6 +31,8 @@ const colorScheme = {
 export function ROICanvas({ save, isPixelWise }) {
 
   const data = useSelector((state) => state.analyze.data);
+  const height = useSelector((state) => state.analyze.height);
+  const width = useSelector((state) => state.analyze.width);
   const [imageNum, setImageNum] = useState(0);
   const [roiMode, setROIMode] = useState("Epicardium");
   const [epiROIs, setEpiROIs] = useState([...Array.from({length: data.length}, e => ({points: [], flattenedPoints: [], isPolyComplete: false}))]);
@@ -60,8 +62,8 @@ export function ROICanvas({ save, isPixelWise }) {
 
   const image = ImageObj(img);
   const size = {
-    width: 650,
-    height: 400,
+    width: width * 4,
+    height: height * 4,
   };
 
   const prevImage = () => {

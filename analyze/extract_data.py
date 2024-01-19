@@ -5,7 +5,7 @@ from pydicom import dcmread
 import os
 
 
-def load_data(identifier): #TODO: Add image sorting?
+def load_data(identifier):
         '''
         Create a 4D matrix (with dimensions x, y, offset, slice) of a previously uploaded 
         dataset and a list of its corresponding offset values.
@@ -18,22 +18,39 @@ def load_data(identifier): #TODO: Add image sorting?
         offset_num = -1
         for f in directory:
             ds = dcmread(os.path.join(MEDIA_ROOT, f'uploads/{identifier}/{f[:-4]}.dcm'))
-            if int(f.split('-')[-1]) == 1:
+            protocol_name = ds['ProtocolName'].value.split('_')
+            ppm_index = protocol_name.index("ppm")
+            if int(f[:-4].split('-')[-1]) == 1:
                 offset_num += 1
-                data[offset_num] = [ds.pixel_array]
-                offsets += int(protocol_name[ppm_index - 1])
+                data += [[ds.pixel_array]]
+                try:
+                    offsets += [float(protocol_name[ppm_index - 1])]
+                except:
+                     offsets += [0]
             else:
                 data[offset_num].append(ds.pixel_array)
-            protocol_name = ds["Protocol Name"].split('_')
-            ppm_index = protocol_name.index("ppm")
             
         return data, offsets
 
 
 def pointsToMask(poly_verts_list, nx, ny):
-        '''Convert a list of polygon vertices to a list of masks'''
+        '''Convert a list of polygon vertices to a list of masks
+
+        >>> vertices = [[
+                [207.40625, 229.203125],
+                [272.40625, 165.203125],
+                [345.40625, 238.203125],
+                [276.40625, 302.203125],
+                [198.40625, 283.203125]
+               ]]
+        >>> result = pointsToMask(vertices, 500, 500)
+        >>> f = open("pointsToMaskExample.txt")
+        >>> correct = f.read()
+        >>> result == correct
+        True
+        '''
         
-        nx, ny = int(nx), int(ny)
+        nx, ny = int(nx), int(ny) # TODO: Figure out how to address small ROI size
         x, y = np.meshgrid(np.arange(nx), np.arange(ny))
         x, y = x.flatten(), y.flatten()
         points = np.vstack((x, y)).T
@@ -44,7 +61,8 @@ def pointsToMask(poly_verts_list, nx, ny):
 
         for poly_verts in poly_verts_list:
         
-            path = Path(poly_verts)
+            scaled_verts = [[v[0] * 0.25, v[1] * 0.25] for v in poly_verts]
+            path = Path(scaled_verts)
             # Check if points are inside the polygon
             poly_mask = path.contains_points(points)
             grid = np.logical_or(grid, poly_mask)
