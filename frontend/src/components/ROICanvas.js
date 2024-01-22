@@ -228,7 +228,7 @@ export function ROICanvas({ save, isPixelWise }) {
       setPoints(roi.points);
       setPolyComplete(roi.isPolyComplete);
     }
-  }
+  };
 
   const handleGroupDragEnd = (e) => {
     //drag end listens other children circles' drag end event

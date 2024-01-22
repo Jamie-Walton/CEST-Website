@@ -1,6 +1,8 @@
 import numpy as np
 import math
-from statistics import mean, stdev
+from statistics import mean
+from PIL import Image
+from scipy.optimize import least_squares
 
 def create_spectrum_roi(data, epi, endo):
     roi_list = ["epi", "endo"]
@@ -48,6 +50,7 @@ def segment(image, mask, arv, irv):
     [cx, cy] = centroid(mask)
     [y, x] = np.nonzero(mask)
     inds = np.nonzero(mask)
+    inds = list(zip(inds[0], inds[1]))
 
     # Offset all points by centroid
     x = x - cx
@@ -59,58 +62,120 @@ def segment(image, mask, arv, irv):
 
     # Find angular segment cutoffs
     pi = math.pi
-    arv_ang = math.atan2(arvy, arvx) % (2*pi)
-    irv_ang = math.atan2(irvy, irvx) % (2*pi)
-    ang = math.atan2(y, x) % (2*pi)
+    angle = lambda a, b : (math.atan2(a, b)) % (2*pi)
+    arv_ang = angle(arvy, arvx)
+    irv_ang = angle(irvy, irvx)
+    ang = [angle(yc, xc) for yc, xc in zip(y, x)]
     sept_cutoffs = np.linspace(0, arv_ang - irv_ang, num=3) # two septal segments
-    wall_cutoffs = np.linspace(arv_ang - irv_ang, 2*pi, 5)  # four wall segments
-    cutoffs = np.array([sept_cutoffs, wall_cutoffs])
-    ang = ang - irv_ang % (2*pi)
+    wall_cutoffs = np.linspace(arv_ang - irv_ang, 2*pi, num=5)  # four wall segments
+    cutoffs = []
+    cutoffs.extend(sept_cutoffs)
+    cutoffs.extend(wall_cutoffs[1:])
+    ang = [(a - irv_ang) % (2*pi) for a in ang]
 
     # Create arrays of each pixel/index in each segment
-    segment_image = lambda a, b : inds[ang >= a and ang <= b]
-    get_pixels = lambda inds : image[inds]
+    segment_image = lambda a, b : [j for (i,j) in enumerate(inds) if ang[i] >= a and ang[i] < b]
+    get_pixels = lambda inds : [image[0][i] for i in inds]
 
-    segmented_indices = segment_image(cutoffs[:6], cutoffs[1:])
-    segmented_pixels = get_pixels(segmented_indices)
+    segmented_indices = [segment_image(a, b) for a, b in zip(cutoffs[:6], cutoffs[1:])]
+    segmented_pixels = [get_pixels(inds) for inds in segmented_indices]
 
     return (segmented_pixels, segmented_indices)
 
 
 def generate_zspec(images, masks, arvs, irvs):
 
-    signal_intensities = []
-    signal_mean = []
-    signal_std = []
-    signal_n = []
+    signal_intensities = [[[] for i in range(6)] for j in range(len(images))]
+    signal_mean = signal_intensities.copy()
+    signal_std = signal_intensities.copy()
+    signal_n = signal_intensities.copy()
     indices = []
     values = []
-    zspec = np.zeros((len(images) - 1, 6))
+    zspec = [[] for i in range(6)]
 
     for i in range(len(images)):
         intensities, inds = segment(images[i], masks[i], arvs[i], irvs[i])
         values.append(intensities)
         indices.append(inds)
 
-        sig_intensity, sig_mean, sig_std, sig_n = [], [], [], []
         for seg in range(6):
-            v = intensities[seg]
+            v = np.array(intensities[seg])
             ids = np.isfinite(v)
-            sig_intensity += v[ids]
-            sig_mean += mean(v[ids])
-            sig_std += stdev(v[ids])
-            sig_n += len(v[ids])
+            signal_intensities[i][seg] = v[ids]
+            signal_mean[i][seg] = mean(v[ids])
+            signal_std[i][seg] = np.std(v[ids])
+            signal_n[i][seg] = len(v[ids])
+    
+    zspec = [[im[seg] / signal_mean[0][seg] for seg in range(6)] for im in signal_mean]
 
-        signal_intensities.append(sig_intensity)
-        signal_mean.append(sig_mean)
-        signal_std.append(sig_std)
-        signal_n.append(sig_n)
-
-    for seg in range(1,6):
-        zspec[:, seg] = signal_mean[1:] / signal_mean[0, seg]
-
-    return zspec, signal_mean, signal_std, signal_n, signal_intensities, indices
+    return zspec[1:], signal_mean, signal_std, signal_n, signal_intensities, indices
 
 
-def b0_correction(freq_offsets, zspec):
-    return (freq_offsets, zspec)
+def show_segmentation(mask, segmented_indices):
+    segmented = np.zeros((np.size(mask, 0), np.size(mask, 1), 3))
+    coords0 = segmented_indices[0] # (255, 0, 0)     red
+    coords1 = segmented_indices[1] # (0, 255, 0)     green
+    coords2 = segmented_indices[2] # (0, 0, 255)     blue
+    coords3 = segmented_indices[3] # (255, 165, 0)   orange
+    coords4 = segmented_indices[4] # (255, 255, 100) yellow
+    coords5 = segmented_indices[5] # (128, 0, 128)   purple
+    
+    for i in range(np.size(mask, 0)):
+        for j in range(np.size(mask, 1)):
+            if (i, j) in coords0:
+                segmented[i][j] = np.array([255, 0, 0], dtype=np.uint8())
+            elif (i, j) in coords1:
+                segmented[i][j] = np.array([0, 255, 0], dtype=np.uint8())
+            elif (i, j) in coords2:
+                segmented[i][j] = np.array([0, 0, 255], dtype=np.uint8())
+            elif (i, j) in coords3:
+                segmented[i][j] = np.array([255, 165, 0], dtype=np.uint8())
+            elif (i, j) in coords4:
+                segmented[i][j] = np.array([255, 255, 100], dtype=np.uint8())
+            elif (i, j) in coords5:
+                segmented[i][j] = np.array([128, 0, 128], dtype=np.uint8())
+            elif mask[i][j] == 1:
+                segmented[i][j] = np.array([255, 255, 255], dtype=np.uint8())
+            else:
+                segmented[i][j] = np.array([0, 0, 0], dtype=np.uint8())
+
+    im = Image.fromarray(segmented.astype(np.uint8))
+    im.save("mask.png")
+
+
+def b0_correction(x, zspec):
+    '''Calculate the B0 correction for an input offset list and zspectra.
+       Returns the B0 shift for each image and a corrected offset list.
+
+       TODO PROBLEM: Dimensions NOT aligning. Initial algorithm calls for the 
+       number of offset frequencies to match the number of segments (6).
+    '''
+
+    #       M0 |~Water~~~~~~~~~~~~~~~~~~~~~|      |~MT~~~~~~~~~~~~~~~~~~~~~~~~|
+    #          | Amplitude | FWHM | Center |      | Amplitude | FWHM | Center |
+    P0 = [1,    0.8,         1.8,    0,            0.15,        40,     -1     ]
+    lb = [0.9,  0.02,        0.3,    -10,          0.0,         30,     -2.5   ]
+    ub = [1,    1,           10,     10,           0.5,         60,     0      ]
+    
+    b0_shift = np.zeros((6, 1))
+    correct_offsets = np.zeros((6, len(zspec)))
+    zspec = np.transpose(zspec)
+
+    for seg in range(6):
+        fun = lambda P : pow((P[0] -
+                        (P[1] * pow(P[2], 2)) / (pow(P[2], 2) + 4*(pow(x - P[3], 2))) - 
+                        (P[3] * pow(P[5], 2)) / (pow(P[5], 2) + 4*(pow(x - P[6], 2)))) -
+                        zspec[seg], 2)
+        T = least_squares(fun, P0, bounds=(lb, ub))
+        b0_shift[seg] = T['x'][3]
+        correct_offsets[seg] = [initial - b0_shift[seg][0] for initial in x]
+
+    return (correct_offsets, b0_shift)
+
+
+def lorentzian_fit(freqs, zspec):
+    print()
+
+
+def show_lorentzian(lor):
+    print()

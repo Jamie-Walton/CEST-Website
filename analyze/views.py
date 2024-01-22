@@ -10,6 +10,7 @@ from analyze.pydicom_PIL import get_PIL_image
 from PIL import Image
 import secrets, string
 import os
+import cv2
 
 from analyze.models import Dataset, File
 from analyze.extract_data import load_data, pointsToMask
@@ -65,26 +66,26 @@ def report(request):
         # Unpack data from frontend
         epi_points = [[roi["points"]] for roi in request.data["epiROIs"]]
         endo_points = [[roi["points"]] for roi in request.data["endoROIs"]]
-        arv_points = [[roi["points"]] for roi in request.data["arvs"]]
-        irv_points = [[roi["points"]] for roi in request.data["irvs"]]
-        pixel_wise = request.data["pixelWise"]
-        epis = [pointsToMask(p, width, height).astype(int) for p in epi_points],
-        endos = [pointsToMask(p, width, height).astype(int) for p in endo_points], 
-        arvs = [pointsToMask(p, width, height).astype(int) for p in arv_points],
-        irvs = [pointsToMask(p, width, height).astype(int) for p in irv_points]
+        epis = [pointsToMask(p, width, height).astype(int) for p in epi_points]
+        endos = [pointsToMask(p, width, height).astype(int) for p in endo_points]
+
+        arvs = [[coord * 0.25 for coord in roi["points"][1]] for roi in request.data["arvs"]]
+        irvs = [[coord * 0.25 for coord in roi["points"][1]] for roi in request.data["irvs"]]
+        pixel_wise = request.data["pixelWise"] # TODO: Deal with pixel wise (currently only segment-wise)
         
         # Create myocardium mask
-        masks = [np.subtract(epi, endo) for epi, endo in zip(epis[0], endos[0])]
+        masks = [np.subtract(epi, endo) for epi, endo in zip(epis, endos)]
 
         # Sort images by frequency
         data = [d for (d, f) in sorted(zip(data, freq_offsets), key=lambda tup : tup[1])]
 
         # Generate z-spectra
         zspec, signal_mean, signal_std, signal_n, signal_intensities, indices = \
-            generate_zspec(data, masks, arvs, irvs) # may need to fix dimensions of data?
-
-        # TODO: B0 Correction
-        x_corrected, b0_shift = b0_correction(freq_offsets[1:], zspec)
+            generate_zspec(data, masks, arvs, irvs)
+        
+        # B0 Correction
+        corrected_offsets, b0_shift = b0_correction(freq_offsets[1:], zspec)
+        print(corrected_offsets, b0_shift)
 
         # TODO: Lorentzian Fitting
         # TODO: Package Results
