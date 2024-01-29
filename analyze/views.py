@@ -10,7 +10,8 @@ from analyze.pydicom_PIL import get_PIL_image
 from PIL import Image
 import secrets, string
 import os
-import cv2
+import matplotlib.pyplot as plt
+import matplotlib
 
 from analyze.models import Dataset, File
 from analyze.extract_data import load_data, pointsToMask
@@ -61,6 +62,7 @@ def report(request):
         ds = Dataset.objects.get(identifier=identifier)
         width, height = ds.image_width, ds.image_height
         data, freq_offsets = load_data(identifier)
+        freq_offsets.sort()
         reference_frequency = 1000
 
         # Unpack data from frontend
@@ -85,7 +87,12 @@ def report(request):
         
         # B0 Correction
         corrected_offsets, b0_shift = b0_correction(freq_offsets[1:], zspec)
-        print(corrected_offsets, b0_shift)
+        print(corrected_offsets[0])
+
+        matplotlib.use('SVG')
+        fig, ax = plt.subplots()
+        ax.plot(corrected_offsets[0], zspec[0], linewidth=2.0)
+        plt.savefig('zspec.png')
 
         # TODO: Lorentzian Fitting
         # TODO: Package Results

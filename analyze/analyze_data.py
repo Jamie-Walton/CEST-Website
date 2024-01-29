@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import numpy as np
 import math
 from statistics import mean
@@ -85,13 +86,12 @@ def segment(image, mask, arv, irv):
 
 def generate_zspec(images, masks, arvs, irvs):
 
-    signal_intensities = [[[] for i in range(6)] for j in range(len(images))]
-    signal_mean = signal_intensities.copy()
-    signal_std = signal_intensities.copy()
-    signal_n = signal_intensities.copy()
+    signal_intensities = [[] for j in range(len(images))]
+    signal_mean = [[] for j in range(len(images))]
+    signal_std = [[] for j in range(len(images))]
+    signal_n = [[] for j in range(len(images))]
     indices = []
     values = []
-    zspec = [[] for i in range(6)]
 
     for i in range(len(images)):
         intensities, inds = segment(images[i], masks[i], arvs[i], irvs[i])
@@ -101,14 +101,18 @@ def generate_zspec(images, masks, arvs, irvs):
         for seg in range(6):
             v = np.array(intensities[seg])
             ids = np.isfinite(v)
-            signal_intensities[i][seg] = v[ids]
-            signal_mean[i][seg] = mean(v[ids])
-            signal_std[i][seg] = np.std(v[ids])
-            signal_n[i][seg] = len(v[ids])
+            signal_intensities[i].append(v[ids])
+            signal_mean[i].append(mean(v[ids]))
+            signal_std[i].append(np.std(v[ids]))
+            signal_n[i].append(len(v[ids]))
     
-    zspec = [[im[seg] / signal_mean[0][seg] for seg in range(6)] for im in signal_mean]
+    zspec = []
+    for seg in range(6):
+        ref = signal_mean[0][seg]
+        spectrum = [m/ref for m in np.transpose(signal_mean)[seg]]
+        zspec.append(spectrum[1:])
 
-    return zspec[1:], signal_mean, signal_std, signal_n, signal_intensities, indices
+    return zspec, signal_mean, signal_std, signal_n, signal_intensities, indices
 
 
 def show_segmentation(mask, segmented_indices):
@@ -146,9 +150,6 @@ def show_segmentation(mask, segmented_indices):
 def b0_correction(x, zspec):
     '''Calculate the B0 correction for an input offset list and zspectra.
        Returns the B0 shift for each image and a corrected offset list.
-
-       TODO PROBLEM: Dimensions NOT aligning. Initial algorithm calls for the 
-       number of offset frequencies to match the number of segments (6).
     '''
 
     #       M0 |~Water~~~~~~~~~~~~~~~~~~~~~|      |~MT~~~~~~~~~~~~~~~~~~~~~~~~|
@@ -157,18 +158,17 @@ def b0_correction(x, zspec):
     lb = [0.9,  0.02,        0.3,    -10,          0.0,         30,     -2.5   ]
     ub = [1,    1,           10,     10,           0.5,         60,     0      ]
     
-    b0_shift = np.zeros((6, 1))
-    correct_offsets = np.zeros((6, len(zspec)))
-    zspec = np.transpose(zspec)
+    b0_shift = []
+    correct_offsets = []
 
     for seg in range(6):
-        fun = lambda P : pow((P[0] -
-                        (P[1] * pow(P[2], 2)) / (pow(P[2], 2) + 4*(pow(x - P[3], 2))) - 
-                        (P[3] * pow(P[5], 2)) / (pow(P[5], 2) + 4*(pow(x - P[6], 2)))) -
-                        zspec[seg], 2)
-        T = least_squares(fun, P0, bounds=(lb, ub))
-        b0_shift[seg] = T['x'][3]
-        correct_offsets[seg] = [initial - b0_shift[seg][0] for initial in x]
+        peak = lambda p1, p2, p3 : np.divide(p1 * pow(p2, 2), np.add(pow(p2, 2), 4*(np.power(np.subtract(x, p3), 2))))
+        fun = lambda P : np.subtract(P[0], np.add(peak(P[1], P[2], P[3]), peak(P[3], P[4], P[5])))
+        resids = lambda P : np.power(np.subtract(fun(P), zspec[seg]), 2)
+
+        T = least_squares(resids, P0, bounds=(lb, ub))
+        b0_shift.append(T['x'][3])
+        correct_offsets.append([initial - T['x'][3] for initial in x])
 
     return (correct_offsets, b0_shift)
 
@@ -177,5 +177,7 @@ def lorentzian_fit(freqs, zspec):
     print()
 
 
-def show_lorentzian(lor):
-    print()
+def show_lorentzian(freqs, zspec):
+    fig, ax = plt.subplots()
+    ax.plot(freqs, zspec, linewidth=2.0)
+    plt.show()
