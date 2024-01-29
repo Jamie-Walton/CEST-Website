@@ -61,8 +61,7 @@ def report(request):
         identifier = request.data["id"]
         ds = Dataset.objects.get(identifier=identifier)
         width, height = ds.image_width, ds.image_height
-        data, freq_offsets = load_data(identifier)
-        freq_offsets.sort()
+        data, freq_offsets, names = load_data(identifier)
         reference_frequency = 1000
 
         # Unpack data from frontend
@@ -80,17 +79,23 @@ def report(request):
 
         # Sort images by frequency
         data = [d for (d, f) in sorted(zip(data, freq_offsets), key=lambda tup : tup[1])]
+        names = [d for (d, f) in sorted(zip(names, freq_offsets), key=lambda tup : tup[1])]
+        ref = names.index('REF')
+        freq_offsets.sort()
 
         # Generate z-spectra
         zspec, signal_mean, signal_std, signal_n, signal_intensities, indices = \
-            generate_zspec(data, masks, arvs, irvs)
+            generate_zspec(data, masks, arvs, irvs, ref)
+        
+        freq_offsets = freq_offsets[:ref] + freq_offsets[ref+1:]
         
         # B0 Correction
-        corrected_offsets, b0_shift = b0_correction(freq_offsets[1:], zspec)
+        corrected_offsets, b0_shift = b0_correction(freq_offsets, zspec)
         print(corrected_offsets[0])
 
         matplotlib.use('SVG')
         fig, ax = plt.subplots()
+        print(freq_offsets)
         ax.plot(corrected_offsets[0], zspec[0], linewidth=2.0)
         plt.savefig('zspec.png')
 

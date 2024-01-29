@@ -84,7 +84,7 @@ def segment(image, mask, arv, irv):
     return (segmented_pixels, segmented_indices)
 
 
-def generate_zspec(images, masks, arvs, irvs):
+def generate_zspec(images, masks, arvs, irvs, ref):
 
     signal_intensities = [[] for j in range(len(images))]
     signal_mean = [[] for j in range(len(images))]
@@ -98,19 +98,27 @@ def generate_zspec(images, masks, arvs, irvs):
         values.append(intensities)
         indices.append(inds)
 
-        for seg in range(6):
-            v = np.array(intensities[seg])
-            ids = np.isfinite(v)
-            signal_intensities[i].append(v[ids])
-            signal_mean[i].append(mean(v[ids]))
-            signal_std[i].append(np.std(v[ids]))
-            signal_n[i].append(len(v[ids]))
+        if i == ref:
+            for seg in range(6):
+                v = np.array(intensities[seg])
+                ids = np.isfinite(v)
+                ref_mean = mean(v[ids])
+        else:
+            for seg in range(6):
+                v = np.array(intensities[seg])
+                ids = np.isfinite(v)
+                signal_intensities[i].append(v[ids])
+                signal_mean[i].append(mean(v[ids]))
+                signal_std[i].append(np.std(v[ids]))
+                signal_n[i].append(len(v[ids]))
     
+    intensities, inds = segment(images[i], masks[i], arvs[i], irvs[i])
+
     zspec = []
+    signal_mean =  [m for m in signal_mean if m != []]
     for seg in range(6):
-        ref = signal_mean[0][seg]
-        spectrum = [m/ref for m in np.transpose(signal_mean)[seg]]
-        zspec.append(spectrum[1:])
+        spectrum = [m/ref_mean for m in np.transpose(signal_mean)[seg]]
+        zspec.append(spectrum)
 
     return zspec, signal_mean, signal_std, signal_n, signal_intensities, indices
 
