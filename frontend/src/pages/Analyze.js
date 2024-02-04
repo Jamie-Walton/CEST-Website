@@ -63,6 +63,7 @@ export function Analyze() {
         .post(`/report/`, report, config)
         .then((res) => {
             // dispatch(generateReport(res.data));
+            handlePageChange('report');
         })
         .catch((err) => {
             console.log(err);

@@ -170,6 +170,7 @@ def b0_correction(x, zspec):
     correct_offsets = []
 
     for seg in range(6):
+        example = lambda p1, p2, p3, x : np.divide(p1 * pow(p2, 2), np.add(pow(p2, 2), 4*(np.power(np.subtract(x, p3), 2))))
         peak = lambda p1, p2, p3 : np.divide(p1 * pow(p2, 2), np.add(pow(p2, 2), 4*(np.power(np.subtract(x, p3), 2))))
         fun = lambda P : np.subtract(P[0], np.add(peak(P[1], P[2], P[3]), peak(P[3], P[4], P[5])))
         resids = lambda P : np.power(np.subtract(fun(P), zspec[seg]), 2)
@@ -177,6 +178,10 @@ def b0_correction(x, zspec):
         T = least_squares(resids, P0, bounds=(lb, ub))
         b0_shift.append(T['x'][3])
         correct_offsets.append([initial - T['x'][3] for initial in x])
+
+        ints = example(0.8, 1.8, 0, list(np.linspace(-10,10,num=100)))
+        if seg == 0:
+            print([{'x': x, 'y': 1-y} for (x,y) in zip(list(np.linspace(-10,10,num=100)), ints)])
 
     return (correct_offsets, b0_shift)
 

@@ -91,13 +91,13 @@ def report(request):
         
         # B0 Correction
         corrected_offsets, b0_shift = b0_correction(freq_offsets, zspec)
-        print(corrected_offsets[0])
 
         matplotlib.use('SVG')
         fig, ax = plt.subplots()
-        print(freq_offsets)
         ax.plot(corrected_offsets[0], zspec[0], linewidth=2.0)
         plt.savefig('zspec.png')
+
+        print([{'x': offset, 'y': intensity} for (offset, intensity) in zip(corrected_offsets[0], zspec[0])])
 
         # TODO: Lorentzian Fitting
         # TODO: Package Results
