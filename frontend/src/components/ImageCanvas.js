@@ -29,6 +29,7 @@ export function ImageCanvas() {
   const data = useSelector((state) => state.analyze.data);
   const height = useSelector((state) => state.analyze.height);
   const width = useSelector((state) => state.analyze.width);
+  const [gallery, setGallery] = useState(true);
   const [imageNum, setImageNum] = useState(0);
   const imageRef = useRef(null);
   const layerRef = useRef(null);
@@ -55,6 +56,35 @@ export function ImageCanvas() {
     height: height * 4,
   };
 
+  const handleImageClick = (i) => {
+    setGallery(false);
+    setImageNum(i);
+  }
+
+  const renderGallery = () => {
+    return(
+      <div>
+        <div style={{display:"flex"}}>
+          <h4 className="stats-heading">Images</h4>
+          <div className="button open-button" 
+            style={{margin: "2px 0 0 20px", height:"fit-content"}}
+            onClick={() => handleGalleryChange()}
+            >{"Scroll View"}
+          </div>
+        </div>
+        <div className="img-gallery">
+          {data.map((d,i) => 
+            <img 
+              src={`/media/uploads/${d.id}/images/${d.image}.png`}
+              onClick={() => handleImageClick(i)}
+              width="100px"
+              className="img-gallery-item"
+            />)}
+        </div>
+      </div>
+    );
+  }
+
   const prevImage = () => {
     if (imageNum > 0) {
       setImageNum(imageNum - 1);
@@ -67,15 +97,10 @@ export function ImageCanvas() {
     }
   };
 
-  const getMousePos = (stage) => {
-    return [stage.getPointerPosition().x, stage.getPointerPosition().y];
-  };
-
   const handleZoom = (e) => {
     e.evt.preventDefault();
 
     const stage = e.currentTarget;
-    var oldScale = scale.x;
     var pointer = stage.getPointerPosition();
 
     var mousePointTo = {
@@ -102,47 +127,68 @@ export function ImageCanvas() {
     }
 
   useEffect(() => {
-    if (image) {
+    if (image && imageNum > 0) {
       imageRef.current.cache();
     }
   }, [image]);
 
-  return (
-    <div style={wrapperStyle}>
-      <div style={columnStyle}>
-        <Stage
-          ref={stageRef}
-          width={size.width || 650}
-          height={size.height || 400}
-          onWheel={handleZoom}
-        >
-          <Layer ref={layerRef}>
-            <Image
-              ref={imageRef}
-              image={image}
-              x={0}
-              y={0}
-              width={size.width}
-              height={size.height}
-              scale={scale}
-              position={stagePos}
-            />
-          </Layer>
-        </Stage>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between", 
-            alignItems: "center",
-            padding: "20px 0",
-            width: "100%",
-          }}
-        >
-          <Button name="Previous" onClick={() => prevImage()}/>
-            <p>{`${imageNum + 1} / ${data.length}`}</p>
-          <Button name="Next" onClick={() => nextImage()}/>
+  const handleGalleryChange = () => {
+    if (gallery) {
+      setImageNum(0);
+    }
+    setGallery(!gallery);
+  }
+
+  if (gallery) {
+    return renderGallery();
+  } else {
+    return (
+      <div>
+        <div style={{display:"flex"}}>
+          <h4 className="stats-heading">Images</h4>
+          <div className="button open-button" 
+            style={{margin: "2px 0 0 20px", height:"fit-content"}}
+            onClick={() => handleGalleryChange()}
+            >{"Gallery View"}
+          </div>
         </div>
-      </div>  
-    </div>
-  );
-};
+        <div style={wrapperStyle}>
+          <div style={columnStyle}>
+            <Stage
+              ref={stageRef}
+              width={size.width || 650}
+              height={size.height || 400}
+              onWheel={handleZoom}
+            >
+              <Layer ref={layerRef}>
+                <Image
+                  ref={imageRef}
+                  image={image}
+                  x={0}
+                  y={0}
+                  width={size.width}
+                  height={size.height}
+                  scale={scale}
+                  position={stagePos}
+                />
+              </Layer>
+            </Stage>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between", 
+                alignItems: "center",
+                padding: "20px 0",
+                width: "100%",
+              }}
+            >
+              <Button name="Previous" onClick={() => prevImage()}/>
+                <p>{`${imageNum + 1} / ${data.length}`}</p>
+              <Button name="Next" onClick={() => nextImage()}/>
+            </div>
+          </div>  
+        </div>
+      </div>
+    );
+  };
+  }

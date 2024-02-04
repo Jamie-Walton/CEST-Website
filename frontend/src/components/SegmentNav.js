@@ -40,7 +40,7 @@ const SegmentNav = ({ active, handleSegmentChange }) => {
       </svg>
       <p className="seg-label" id="seg-label">{segments[active]}</p>
       {active == 6 ? <div/> :
-      <div className="button segment-button" onClick={() => handleSegmentChange(6)}>Show All</div>
+      <div className="button open-button" onClick={() => handleSegmentChange(6)}>Show All</div>
       }
     </div>
   );

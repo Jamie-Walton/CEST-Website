@@ -200,16 +200,30 @@ button {
     justify-self: center;
 }
 
-.segment-button {
-    font-size: 12px;
-    margin: 15px 0 0 0;
-    padding: 5px 12px;
-    background-color: #FFFFFF;
-    color: #0054A8;
-    border-style: solid;
-    border-color: #0054A8;
+.stats-container {
+    background-color: #e4eaf1;
+    padding: 30px;
+    width: 59vw;
 }
 
-.segment-button:hover {
-    color: #FFFFFF;
+.stats-heading {
+    color: #0054A8;
+    font-family: proxima-nova, sans-serif;
+    font-weight: 800;
+    font-size: 22px;
+}
+
+.img-gallery {
+    display: flex;
+    flex-flow: row wrap;
+    width: 65vw;
+    margin: 20px 0 0 0;
+}
+
+.img-gallery-item {
+    cursor: pointer;
+}
+
+.img-gallery-item:hover {
+    filter: sepia(100%) hue-rotate(190deg) saturate(1.5);
 }

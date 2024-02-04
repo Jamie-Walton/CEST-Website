@@ -245,8 +245,12 @@ export function Report() {
                 </div>
                 <div style={{display:'flex', flexDirection:'column', rowGap:'50px'}}>
                   {renderGraph("zspec")}
-                  <br/>
+                  {segment == 6 ? <br/> : <div/>}
                   {renderGraph("lor")}
+                  <div className="stats-container">
+                    <h4 className="stats-heading">Statistics</h4>
+                    <p>Insert statistics here</p>
+                  </div>
                   <ImageCanvas />
               </div>
             </div>
