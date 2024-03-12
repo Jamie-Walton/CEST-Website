@@ -42,7 +42,10 @@ export function ROICanvas({ save, isPixelWise }) {
   const [selectedROIs, setSelectedROIs] = useState([...epiROIs]);
   const [roiEmpty, setROIEmpty] = useState(true);
   const imageRef = useRef(null);
-  const dataRef = useRef(null);
+  const layerRef = useRef(null);
+  const stageRef = useRef(null);
+  const [scale, setScale] = useState({ x: 1, y: 1 });
+  const [stagePos, setStagePos] = useState({ x: 0, y: 0 });
   const [points, setPoints] = useState([]);
   const [flattenedPoints, setFlattenedPoints] = useState();
   const [position, setPosition] = useState([0, 0]);
@@ -118,6 +121,44 @@ export function ROICanvas({ save, isPixelWise }) {
     if (pos[0] > stage.width()) pos[0] = stage.width();
     if (pos[1] > stage.height()) pos[1] = stage.height();
     setPoints([...points.slice(0, index), pos, ...points.slice(index + 1)]);
+  };
+
+  const handleDblClick = (e) => {
+    e.evt.preventDefault();
+
+    const stage = e.currentTarget;
+    var oldScale = scale.x;
+    var pointer = stage.getPointerPosition();
+
+    var mousePointTo = {
+      x: (pointer.x - stageRef.current.x()),
+      y: (pointer.y - stageRef.current.y()),
+    };
+
+    var direction = e.evt.deltaY > 0 ? 1 : -1;
+    if (e.evt.ctrlKey) {
+      direction = -direction;
+    }
+
+    var newScale = scale.x + e.evt.deltaY * -0.01;
+    if (newScale < 1 || newScale > 2) {
+      return;
+    }
+
+    setScale({ x: newScale, y: newScale });
+    var newPos = {
+      x: pointer.x - mousePointTo.x * newScale,
+      y: pointer.y - mousePointTo.y * newScale,
+    };
+    setStagePos(newPos);
+    if (points) {
+      const pointScale = newScale / oldScale;
+      var newPoints = points.map(coord => [
+        (coord[0] * pointScale) + ((pointer.x - mousePointTo.x) / pointScale), 
+        (coord[1] * pointScale) + ((pointer.y - mousePointTo.y) / pointScale)
+      ]);
+      setPoints(newPoints);
+    }
   };
 
   const setROIs = (rois) => {
@@ -280,12 +321,14 @@ export function ROICanvas({ save, isPixelWise }) {
     <div style={wrapperStyle}>
       <div style={columnStyle}>
         <Stage
+          ref={stageRef}
           width={size.width || 650}
           height={size.height || 400}
           onMouseMove={handleMouseMove}
           onMouseDown={handleMouseDown}
+          // onWheel={handleDblClick}
         >
-          <Layer>
+          <Layer ref={layerRef}>
             <Image
               ref={imageRef}
               image={image}
@@ -296,6 +339,8 @@ export function ROICanvas({ save, isPixelWise }) {
               filters={[Konva.Filters.Brighten, Konva.Filters.Contrast]}
               brightness={brightness}
               contrast={contrast}
+              scale={scale}
+              position={stagePos}
             />
             {roiMode == 'Epicardium' ? null : 
                 <StaticPolygon

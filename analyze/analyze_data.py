@@ -84,7 +84,7 @@ def segment(image, mask, arv, irv):
     return (segmented_pixels, segmented_indices)
 
 
-def generate_zspec(images, masks, arvs, irvs):
+def generate_zspec(images, masks, arvs, irvs, ref):
 
     signal_intensities = [[] for j in range(len(images))]
     signal_mean = [[] for j in range(len(images))]
@@ -98,19 +98,27 @@ def generate_zspec(images, masks, arvs, irvs):
         values.append(intensities)
         indices.append(inds)
 
-        for seg in range(6):
-            v = np.array(intensities[seg])
-            ids = np.isfinite(v)
-            signal_intensities[i].append(v[ids])
-            signal_mean[i].append(mean(v[ids]))
-            signal_std[i].append(np.std(v[ids]))
-            signal_n[i].append(len(v[ids]))
+        if i == ref:
+            for seg in range(6):
+                v = np.array(intensities[seg])
+                ids = np.isfinite(v)
+                ref_mean = mean(v[ids])
+        else:
+            for seg in range(6):
+                v = np.array(intensities[seg])
+                ids = np.isfinite(v)
+                signal_intensities[i].append(v[ids])
+                signal_mean[i].append(mean(v[ids]))
+                signal_std[i].append(np.std(v[ids]))
+                signal_n[i].append(len(v[ids]))
     
+    intensities, inds = segment(images[i], masks[i], arvs[i], irvs[i])
+
     zspec = []
+    signal_mean =  [m for m in signal_mean if m != []]
     for seg in range(6):
-        ref = signal_mean[0][seg]
-        spectrum = [m/ref for m in np.transpose(signal_mean)[seg]]
-        zspec.append(spectrum[1:])
+        spectrum = [m/ref_mean for m in np.transpose(signal_mean)[seg]]
+        zspec.append(spectrum)
 
     return zspec, signal_mean, signal_std, signal_n, signal_intensities, indices
 
@@ -162,6 +170,7 @@ def b0_correction(x, zspec):
     correct_offsets = []
 
     for seg in range(6):
+        example = lambda p1, p2, p3, x : np.divide(p1 * pow(p2, 2), np.add(pow(p2, 2), 4*(np.power(np.subtract(x, p3), 2))))
         peak = lambda p1, p2, p3 : np.divide(p1 * pow(p2, 2), np.add(pow(p2, 2), 4*(np.power(np.subtract(x, p3), 2))))
         fun = lambda P : np.subtract(P[0], np.add(peak(P[1], P[2], P[3]), peak(P[3], P[4], P[5])))
         resids = lambda P : np.power(np.subtract(fun(P), zspec[seg]), 2)
@@ -169,6 +178,10 @@ def b0_correction(x, zspec):
         T = least_squares(resids, P0, bounds=(lb, ub))
         b0_shift.append(T['x'][3])
         correct_offsets.append([initial - T['x'][3] for initial in x])
+
+        ints = example(0.8, 1.8, 0, list(np.linspace(-10,10,num=100)))
+        if seg == 0:
+            print([{'x': x, 'y': 1-y} for (x,y) in zip(list(np.linspace(-10,10,num=100)), ints)])
 
     return (correct_offsets, b0_shift)
 

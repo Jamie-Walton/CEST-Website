@@ -15,11 +15,13 @@ def load_data(identifier):
         directory = os.listdir(root)
         offsets = []
         data = []
+        names = []
         offset_num = -1
         for f in directory:
             ds = dcmread(os.path.join(MEDIA_ROOT, f'uploads/{identifier}/{f[:-4]}.dcm'))
             protocol_name = ds['ProtocolName'].value.split('_')
             ppm_index = protocol_name.index("ppm")
+            names += [protocol_name[ppm_index - 1]]
             if int(f[:-4].split('-')[-1]) == 1:
                 offset_num += 1
                 data += [[ds.pixel_array]]
@@ -30,7 +32,7 @@ def load_data(identifier):
             else:
                 data[offset_num].append(ds.pixel_array)
             
-        return data, offsets
+        return data, offsets, names
 
 
 def pointsToMask(poly_verts_list, nx, ny):
