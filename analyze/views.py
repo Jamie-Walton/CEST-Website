@@ -18,12 +18,16 @@ from analyze.extract_data import load_data, pointsToMask
 from analyze.analyze_data import generate_zspec, b0_correction
 
 
+
 class UploadView(APIView):
     parser_classes = (MultiPartParser, FormParser)
 
     def load_image(self, file, identifier):
         ds = dcmread(os.path.join(MEDIA_ROOT, f'uploads/{identifier}/{file}'))
-        return get_PIL_image(ds)
+        print(ds)
+        wl = float(ds.WindowCenter)
+        ww = float(ds.WindowWidth)
+        return (get_PIL_image(ds), wl, ww)
 
     def post(self, request):
         directory = request.data.getlist('file')
@@ -32,6 +36,7 @@ class UploadView(APIView):
         dataset.save()
 
         images = []
+        levels = []
         os.mkdir(f'{MEDIA_ROOT}/uploads/{identifier}')
         os.mkdir(f'{MEDIA_ROOT}/uploads/{identifier}/images')
         for f in directory:
@@ -39,7 +44,8 @@ class UploadView(APIView):
                 images += [{'id': identifier, 'image': f.name[:-4]}]
                 file = File(dataset=dataset, file=f)
                 file.save()
-                img = self.load_image(f.name, identifier)
+                [img, wl, ww] = self.load_image(f.name, identifier)
+                levels += [(wl, ww)]
                 img.save(f'{MEDIA_ROOT}/uploads/{identifier}/images/{f.name[:-4]}.png')
 
         first = os.listdir(f'{MEDIA_ROOT}/uploads/{identifier}/images')[0]
@@ -49,7 +55,7 @@ class UploadView(APIView):
         dataset.image_height = height
         dataset.save()
         
-        return JsonResponse({'images': images, 'width': width, 'height': height})
+        return JsonResponse({'images': images, 'width': width, 'height': height, 'levels': levels})
 
 
 @api_view(('POST',))

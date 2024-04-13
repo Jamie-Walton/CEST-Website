@@ -7,6 +7,7 @@ import Konva from 'konva';
 import Button from "./Button";
 import LabelButton from "./LabelButton";
 import useImage from 'use-image';
+import cmap from 'colormap';
 
 
 const wrapperStyle = {
@@ -33,6 +34,7 @@ export function ROICanvas({ save, isPixelWise }) {
   const data = useSelector((state) => state.analyze.data);
   const height = useSelector((state) => state.analyze.height);
   const width = useSelector((state) => state.analyze.width);
+  const levels = useSelector((state) => state.analyze.levels);
   const [imageNum, setImageNum] = useState(0);
   const [roiMode, setROIMode] = useState("Epicardium");
   const [epiROIs, setEpiROIs] = useState([...Array.from({length: data.length}, e => ({points: [], flattenedPoints: [], isPolyComplete: false}))]);
@@ -51,12 +53,15 @@ export function ROICanvas({ save, isPixelWise }) {
   const [position, setPosition] = useState([0, 0]);
   const [isMouseOverPoint, setMouseOverPoint] = useState(false);
   const [isPolyComplete, setPolyComplete] = useState(false);
-  const [brightness, setBrightness] = useState(0);
-  const [contrast, setContrast] = useState(0);
+  const [windowLevel, setWindowLevel] = useState(levels[0][0]);
+  const [windowWidth, setWindowWidth] = useState(levels[0][1]);
   var img = null;
   if (data && data.length > 0 && data.length > imageNum) {
     img = `/media/uploads/${data[imageNum].id}/images/${data[imageNum].image}.png`;
   }
+
+  const initialWL = windowLevel;
+  const initialWW = windowWidth;
 
   const ImageObj = (url) => {
     const [image] = useImage(url);
@@ -308,13 +313,47 @@ export function ROICanvas({ save, isPixelWise }) {
     setROIEmpty(newROIs[imageNum].points.length < 1);
   }
 
-  const onBrightnessChange = (e) => {
-    setBrightness(e.target.value)
+  const onLevelChange = (e) => {
+    setWindowLevel(e.target.value)
   }
 
-  const onContrastChange = (e) => {
-    setContrast(Number(e.target.value))
+  const onWidthChange = (e) => {
+    setWindowWidth(Number(e.target.value))
   }
+
+  const convertPixel = (vmin, vmax, value) => {
+    const vmin0 = initialWL - initialWW/2;
+    const vmax0 = initialWL + initialWW/2;
+    const vminScale = (vmax - vmin) / (vmax - vmin0);
+    const vmaxScale = vmax / vmax0;
+
+    const pminScale = vminScale*255 - 255;
+    const pmaxScale = vmaxScale*255;
+
+    var newValue = (255/((vmax-vmin)) * value) + vmax;
+
+    if (newValue < 0) {
+      newValue = 0;
+    } else if (newValue > 255) {
+      newValue = 255;
+    }
+    return newValue;
+  }
+
+  var colorMap = function (imageData) {
+    //image.clearCache();
+    var nPixels = imageData.data.length;
+    var vmin = windowLevel - windowWidth/2;
+    var vmax = windowLevel + windowWidth/2;
+    console.log(`${vmin} to ${vmax}`);
+    for (var i = 0; i < nPixels; i += 4) {
+      const value = convertPixel(vmin, vmax, imageData.data[i]);
+      imageData.data[i]   = value;
+      imageData.data[i+1] = value;
+      imageData.data[i+2] = value;
+      imageData.data[i+3] = 255;
+    }
+  };
 
   return (
     <div>
@@ -336,9 +375,7 @@ export function ROICanvas({ save, isPixelWise }) {
               y={0}
               width={size.width}
               height={size.height}
-              filters={[Konva.Filters.Brighten, Konva.Filters.Contrast]}
-              brightness={brightness}
-              contrast={contrast}
+              filters={[colorMap]}
               scale={scale}
               position={stagePos}
             />
@@ -420,10 +457,10 @@ export function ROICanvas({ save, isPixelWise }) {
         <Button name="Reset" onClick={reset} style={{margin: "10px 10px 10px 30px"}}/>
         {isPixelWise ? <Button name="Copy Previous" onClick={copyPrev} style={{margin: "10px 10px 10px 30px"}}/> : <div/>}
         <div>
-          <input type="range" id="brightness" name="brightness" min="-0.5" max="0.5" step="0.01" value={brightness} onChange={onBrightnessChange} style={{margin: "50px 10px 0px 30px"}}/>
-          <label for="brightness" style={{margin: "0px 10px 10px 30px"}}>Brightness</label>
-          <input type="range" id="contrast" name="contrast" min="-100" max="100" step="1" value={contrast} onChange={onContrastChange} style={{margin: "10px 10px 0px 30px"}}/>
-          <label for="contrast" style={{margin: "0px 10px 10px 30px"}}>Contrast</label>
+          <input type="range" id="level" name="level" min="0" max="1000" step="10" value={windowLevel} onChange={onLevelChange} style={{margin: "50px 10px 0px 30px"}}/>
+          <label for="level" style={{margin: "0px 10px 10px 30px"}}>WL</label>
+          <input type="range" id="width" name="width" min="0" max="1000" step="10" value={windowWidth} onChange={onWidthChange} style={{margin: "10px 10px 0px 30px"}}/>
+          <label for="width" style={{margin: "0px 10px 10px 30px"}}>WW</label>
         </div>
       </div>
       </div>
