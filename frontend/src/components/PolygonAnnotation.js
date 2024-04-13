@@ -18,11 +18,10 @@ const PolygonAnnotation = (props) => {
     handleMouseOverStartPoint,
     handleMouseOutStartPoint,
     strokeColor,
-    fillColor,
     pointFill,
     pointOnly
   } = props;
-  const vertexRadius = pointOnly ? 6 : 4;
+  const vertexRadius = pointOnly ? 5 : 3;
 
   const [stage, setStage] = useState();
   const handleGroupMouseOver = (e) => {
@@ -64,7 +63,7 @@ const PolygonAnnotation = (props) => {
       <Line
         points={flattenedPoints}
         stroke={pointOnly ? null : strokeColor}
-        strokeWidth={3}
+        strokeWidth={2}
         closed={isFinished}
         fill={null}
       />

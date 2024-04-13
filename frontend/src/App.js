@@ -1,6 +1,7 @@
 import Page from './pages/Page';
 import { Landing } from './pages/Landing';
 import { Analyze } from './pages/Analyze';
+import { Report } from './pages/Report';
 import './css/main.css';
 import './css/pages.css';
 
@@ -19,6 +20,7 @@ class App extends Component {
           <Routes>
               <Route exact path='/' element={<Page page={<Landing/>}/>} />
               <Route path='/analyze' element={<Page page={<Analyze/>}/>} />
+              <Route path='/report' element={<Page page={<Report/>}/>} />
               <Route path='*' element={<Navigate to='/' />} />
           </Routes>
         </Router>

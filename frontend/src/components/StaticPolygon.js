@@ -14,11 +14,10 @@ const StaticPolygon = (props) => {
     flattenedPoints,
     isFinished,
     strokeColor,
-    fillColor,
     pointFill,
     pointOnly
   } = props;
-  const vertexRadius = pointOnly ? 6 : 4;
+  const vertexRadius = pointOnly ? 5 : 3;
   var displayPoints = points.length > 1 ? (pointOnly ? [points[1]] : points) : points;
 
   return (
@@ -28,7 +27,7 @@ const StaticPolygon = (props) => {
       <Line
         points={flattenedPoints}
         stroke={pointOnly ? null : strokeColor}
-        strokeWidth={3}
+        strokeWidth={2}
         closed={isFinished}
         fill={null}
       />
